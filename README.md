@@ -1,4 +1,4 @@
-# CryptoPulse 🚀
+# Blokklens 🚀
 
 A modern, real-time cryptocurrency tracking application built with Next.js 14, featuring a sleek dark UI with glassmorphism effects and SVG decorations.
 

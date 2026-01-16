@@ -11,7 +11,7 @@ import {
 ====================== */
 
 export const fetchMarketCoins = () =>
-  api<MarketCoin[]>("/api/coins/markets");
+  api<MarketCoin[]>("/api/coins/market");
 
 export const fetchTrendingCoins = () =>
   api<TrendingResponse>("/api/coins/trending");
@@ -24,12 +24,12 @@ export const fetchCoinDetails = (id: string) =>
 ====================== */
 
 export const fetchFavorites = () =>
-  api<Favorite[]>("/api/coins/favorites");
+  api<MarketCoin[]>("/api/coins/favorites");
 
 export const addFavorite = (coinId: string) =>
   api<Favorite>("/api/favorites", {
     method: "POST",
-    body: JSON.stringify({ coinId }),
+    body: JSON.stringify({ coinId, chainId: "ethereum", address: "0x0" }),
   });
 
 export const removeFavorite = (coinId: string) =>

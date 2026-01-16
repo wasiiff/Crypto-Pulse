@@ -23,10 +23,10 @@ export default function MarketStats() {
 
   const totalMarketCap = coins?.reduce((acc, coin) => acc + (coin.market_cap || 0), 0) || 0
   const totalVolume = coins?.reduce((acc, coin) => acc + (coin.total_volume || 0), 0) || 0
-  const avgChange = coins?.reduce((acc, coin) => acc + (coin.price_change_percentage_24h || 0), 0) / (coins?.length || 1)
+  const avgChange = (coins?.reduce((acc, coin) => acc + (coin.price_change_percentage_24h || 0), 0) || 0) / (coins?.length || 1)
   const topGainer = coins?.reduce((max, coin) => 
     (coin.price_change_percentage_24h || 0) > (max.price_change_percentage_24h || 0) ? coin : max
-  , coins?.[0] || { price_change_percentage_24h: 0 })
+  , coins?.[0]) || { price_change_percentage_24h: 0, symbol: "N/A" }
 
   const stats = [
     {

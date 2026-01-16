@@ -1,37 +1,139 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CryptoPulse 🚀
 
-## Getting Started
+A modern, real-time cryptocurrency tracking application built with Next.js 14, featuring a sleek dark UI with glassmorphism effects and SVG decorations.
 
-First, run the development server:
+## Features ✨
 
+- **Real-time Market Data**: Track live cryptocurrency prices from CoinGecko API
+- **Trending Coins**: See what's hot in the crypto market
+- **User Authentication**: Secure login with NextAuth (Credentials & Google OAuth)
+- **Favorites System**: Save and track your favorite cryptocurrencies
+- **Detailed Coin Pages**: View comprehensive information about each coin
+- **Responsive Design**: Beautiful UI that works on all devices
+- **Modern UI**: Glassmorphism effects, SVG decorations, and smooth animations
+
+## Tech Stack 🛠️
+
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS 4
+- **UI Components**: Shadcn/ui with Radix UI
+- **Authentication**: NextAuth.js
+- **Database**: MongoDB with Mongoose
+- **State Management**: TanStack Query (React Query)
+- **Form Handling**: React Hook Form + Zod validation
+- **Icons**: Lucide React
+
+## Getting Started 🚀
+
+### Prerequisites
+
+- Node.js 18+ 
+- MongoDB database
+- CoinGecko API access (free tier works)
+- Google OAuth credentials (optional)
+
+### Installation
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <your-repo-url>
+cd cryptopulse
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Set up environment variables:
+Create a `.env` file in the root directory:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+MONGODB_URI=your_mongodb_connection_string
+NEXTAUTH_SECRET=your_nextauth_secret
+NEXTAUTH_URL=http://localhost:3000
+COINGECKO_BASE_URL=https://api.coingecko.com/api/v3
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+```
 
-## Learn More
+4. Run the development server:
+```bash
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure 📁
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+├── app/
+│   ├── api/              # API routes
+│   ├── auth/             # Authentication pages
+│   ├── coins/            # Coin detail pages
+│   ├── favorites/        # Favorites page
+│   └── page.tsx          # Home page
+├── components/
+│   ├── auth/             # Auth forms
+│   ├── coins/            # Coin components
+│   ├── layout/           # Layout components
+│   └── ui/               # Reusable UI components
+├── lib/
+│   ├── auth.ts           # NextAuth configuration
+│   ├── db.ts             # MongoDB connection
+│   └── validators/       # Zod schemas
+├── models/               # Mongoose models
+├── services/             # API services
+└── types/                # TypeScript types
+```
 
-## Deploy on Vercel
+## Features in Detail 📝
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Authentication
+- Email/password registration and login
+- Google OAuth integration
+- Secure password hashing with bcrypt
+- JWT-based sessions
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# Crypto-Pulse
+### Market Data
+- Real-time price updates
+- 24h price change indicators
+- Market cap rankings
+- Trending coins sidebar
+
+### Favorites
+- Add/remove coins from favorites
+- Persistent storage in MongoDB
+- Quick access to tracked coins
+
+### UI/UX
+- Dark theme with glassmorphism
+- Decorative SVG elements
+- Smooth animations and transitions
+- Responsive grid layouts
+- Loading states and error handling
+
+## API Routes 🔌
+
+- `GET /api/coins/market` - Fetch market coins
+- `GET /api/coins/trending` - Fetch trending coins
+- `GET /api/coins/[id]` - Fetch coin details
+- `GET /api/coins/favorites` - Get user favorites
+- `POST /api/favorites` - Add favorite
+- `DELETE /api/favorites` - Remove favorite
+- `POST /api/auth/register` - User registration
+
+## Contributing 🤝
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License 📄
+
+This project is open source and available under the MIT License.
+
+## Acknowledgments 🙏
+
+- [CoinGecko](https://www.coingecko.com/) for the cryptocurrency data API
+- [Shadcn/ui](https://ui.shadcn.com/) for the beautiful UI components
+- [Next.js](https://nextjs.org/) for the amazing framework

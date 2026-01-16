@@ -1,0 +1,82 @@
+"use client"
+
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { fetchFavorites, removeFavorite } from "@/services/queries"
+import { useSession } from "next-auth/react"
+import CoinCard from "./CoinCard"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import { Star, Loader2 } from "lucide-react"
+
+export default function FavoritesClient() {
+  const { data: session, status } = useSession()
+  const queryClient = useQueryClient()
+
+  const { data: favorites, isLoading } = useQuery({
+    queryKey: ["favorites"],
+    queryFn: fetchFavorites,
+    enabled: !!session,
+  })
+
+  const removeMutation = useMutation({
+    mutationFn: removeFavorite,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["favorites"] })
+    },
+  })
+
+  if (status === "loading" || isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+      </div>
+    )
+  }
+
+  if (!session) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <Star className="w-16 h-16 text-gray-600 mb-4" />
+        <h2 className="text-2xl font-semibold text-white mb-2">
+          Sign in to save favorites
+        </h2>
+        <p className="text-gray-400 mb-6">
+          Create an account to track your favorite cryptocurrencies
+        </p>
+        <Link href="/auth/login">
+          <Button>Sign in</Button>
+        </Link>
+      </div>
+    )
+  }
+
+  if (!favorites || favorites.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <Star className="w-16 h-16 text-gray-600 mb-4" />
+        <h2 className="text-2xl font-semibold text-white mb-2">
+          No favorites yet
+        </h2>
+        <p className="text-gray-400 mb-6">
+          Start adding coins to your favorites list
+        </p>
+        <Link href="/">
+          <Button>Browse Markets</Button>
+        </Link>
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {favorites.map((coin) => (
+        <CoinCard
+          key={coin.id}
+          coin={coin}
+          isFavorite={true}
+          onToggleFavorite={() => removeMutation.mutate(coin.id)}
+        />
+      ))}
+    </div>
+  )
+}

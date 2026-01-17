@@ -13,6 +13,9 @@ import {
 export const fetchMarketCoins = (page: number = 1, per_page: number = 20) =>
   api<MarketCoin[]>(`/api/coins/market?page=${page}&per_page=${per_page}`);
 
+export const searchMarketCoins = (query: string) =>
+  api<{ coins: Array<{ id: string; name: string; symbol: string; market_cap_rank: number; thumb: string; large: string }> }>(`/api/coins/search?query=${encodeURIComponent(query)}`);
+
 export const fetchTrendingCoins = () =>
   api<TrendingResponse>("/api/coins/trending");
 

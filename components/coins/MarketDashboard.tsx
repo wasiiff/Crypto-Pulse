@@ -1,7 +1,7 @@
 "use client"
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { fetchMarketCoins, fetchFavorites, addFavorite, removeFavorite } from "@/services/queries"
+import { fetchMarketCoins, searchMarketCoins, fetchFavorites, addFavorite, removeFavorite } from "@/services/queries"
 import { useSession } from "next-auth/react"
 import { useState, useEffect, useMemo } from "react"
 import { Loader2, LayoutGrid, List } from "lucide-react"
@@ -23,15 +23,42 @@ export default function MarketDashboard() {
   const [perPage] = useState(20)
   const totalPages = 100 // CoinGecko typically has ~10,000 coins, so 100 pages with 20 per page
 
-  // When searching, fetch more coins to show comprehensive results
   const isSearching = searchQuery.trim().length > 0
-  const effectivePage = isSearching ? 1 : currentPage
-  const effectivePerPage = isSearching ? 250 : perPage
 
-  const { data: coins, isLoading: coinsLoading } = useQuery({
-    queryKey: ["market-coins", effectivePage, effectivePerPage],
-    queryFn: () => fetchMarketCoins(effectivePage, effectivePerPage),
+  // Fetch regular market coins for browsing
+  const { data: marketCoins, isLoading: marketCoinsLoading } = useQuery({
+    queryKey: ["market-coins", currentPage, perPage],
+    queryFn: () => fetchMarketCoins(currentPage, perPage),
+    enabled: !isSearching,
   })
+
+  // Fetch search results
+  const { data: searchResults, isLoading: searchLoading } = useQuery({
+    queryKey: ["search-coins", searchQuery],
+    queryFn: () => searchMarketCoins(searchQuery),
+    enabled: isSearching,
+  })
+
+  // Fetch detailed market data for search results
+  const searchCoinIds = useMemo(() => {
+    return searchResults?.coins?.map(coin => coin.id) || []
+  }, [searchResults])
+
+  const { data: searchCoinsData, isLoading: searchCoinsDataLoading } = useQuery({
+    queryKey: ["search-coins-data", searchCoinIds],
+    queryFn: async () => {
+      if (searchCoinIds.length === 0) return []
+      
+      // Fetch market data for all search result coins
+      // We'll fetch a large batch and filter by the search result IDs
+      const allCoins = await fetchMarketCoins(1, 250)
+      return allCoins.filter(coin => searchCoinIds.includes(coin.id))
+    },
+    enabled: isSearching && searchCoinIds.length > 0,
+  })
+
+  const coins = isSearching ? searchCoinsData : marketCoins
+  const isLoading = isSearching ? (searchLoading || searchCoinsDataLoading) : marketCoinsLoading
 
   const { data: favorites } = useQuery({
     queryKey: ["favorites"],
@@ -73,23 +100,11 @@ export default function MarketDashboard() {
     }
   }
 
-  const filteredCoins = useMemo(() => {
-    if (!coins) return []
-    if (!searchQuery.trim()) return coins
-
-    const query = searchQuery.toLowerCase()
-    return coins.filter(
-      (coin) =>
-        coin.name.toLowerCase().includes(query) ||
-        coin.symbol.toLowerCase().includes(query)
-    )
-  }, [coins, searchQuery])
-
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
   }
 
-  if (coinsLoading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
@@ -126,9 +141,13 @@ export default function MarketDashboard() {
         </div>
       </div>
 
-      {filteredCoins.length === 0 ? (
+      {!coins || coins.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-400">No coins found matching "{searchQuery}"</p>
+          <p className="text-gray-400">
+            {isSearching 
+              ? `No coins found matching "${searchQuery}"` 
+              : "No coins available"}
+          </p>
         </div>
       ) : (
         <>
@@ -136,14 +155,14 @@ export default function MarketDashboard() {
           {isSearching && (
             <div className="mb-4">
               <p className="text-sm text-muted-foreground">
-                Found {filteredCoins.length} coin{filteredCoins.length !== 1 ? 's' : ''} matching "{searchQuery}"
+                Found {coins.length} coin{coins.length !== 1 ? 's' : ''} matching "{searchQuery}"
               </p>
             </div>
           )}
 
           {viewMode === "grid" ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredCoins.map((coin) => (
+              {coins.map((coin) => (
                 <CoinCard
                   key={coin.id}
                   coin={coin}
@@ -154,7 +173,7 @@ export default function MarketDashboard() {
             </div>
           ) : (
             <CoinTable
-              coins={filteredCoins}
+              coins={coins}
               favoriteIds={favoriteIds}
               onToggleFavorite={session ? handleToggleFavorite : undefined}
             />
@@ -166,7 +185,7 @@ export default function MarketDashboard() {
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={handlePageChange}
-              isLoading={coinsLoading}
+              isLoading={isLoading}
             />
           )}
         </>

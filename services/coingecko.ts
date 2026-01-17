@@ -39,3 +39,7 @@ export async function getCoinDetails(id: string) {
         `${BASE_URL}/coins/${id}?localization=false&tickers=false&market_data=true`
     );
 }
+
+export async function searchCoins(query: string) {
+    return fetcher(`${BASE_URL}/search?query=${encodeURIComponent(query)}`);
+}

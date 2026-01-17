@@ -2,9 +2,9 @@
 
 import { useState, useCallback } from "react"
 import SearchContainer from "./SearchContainer"
-import MarketOverview from "./MarketOverview"
+import MarketDashboard from "./MarketDashboard"
 
-export default function MarketOverviewWithFavorites() {
+export default function MarketWithSearch() {
   const [searchQuery, setSearchQuery] = useState("")
   const [isSearchLoading, setIsSearchLoading] = useState(false)
 
@@ -19,19 +19,18 @@ export default function MarketOverviewWithFavorites() {
   }, [])
 
   return (
-    <div className="space-y-6">
-      {/* Search Section */}
+    <div className="space-y-8">
+      {/* Search Section - Always visible at the top */}
       <SearchContainer
         onSearchChange={handleSearchChange}
-        placeholder="Search coins by name or symbol..."
+        placeholder="Search cryptocurrencies by name or symbol..."
         isLoading={isSearchLoading}
         debounceMs={500}
-        size="md"
-        className="max-w-md"
+        className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border/50"
       />
       
-      {/* Market Overview - Receives search query as prop */}
-      <MarketOverview searchQuery={searchQuery} />
+      {/* Market Dashboard - Receives search query as prop */}
+      <MarketDashboard searchQuery={searchQuery} />
     </div>
   )
 }

@@ -6,24 +6,31 @@ import { useSession } from "next-auth/react"
 import { useState, useEffect, useMemo } from "react"
 import { Loader2, LayoutGrid, List } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import SearchInput from "@/components/ui/search-input"
 import { Pagination } from "@/components/ui/pagination"
 import CoinCard from "./CoinCard"
 import CoinTable from "./CoinTable"
 
 type ViewMode = "grid" | "table"
 
-export default function MarketDashboard() {
+interface MarketDashboardProps {
+  searchQuery?: string
+}
+
+export default function MarketDashboard({ searchQuery = "" }: MarketDashboardProps) {
   const { data: session } = useSession()
   const queryClient = useQueryClient()
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set())
-  const [searchQuery, setSearchQuery] = useState("")
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
   const [currentPage, setCurrentPage] = useState(1)
   const [perPage] = useState(20)
   const totalPages = 100 // CoinGecko typically has ~10,000 coins, so 100 pages with 20 per page
 
   const isSearching = searchQuery.trim().length > 0
+
+  // Reset to first page when search query changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery])
 
   // Fetch regular market coins for browsing
   const { data: marketCoins, isLoading: marketCoinsLoading } = useQuery({
@@ -116,31 +123,24 @@ export default function MarketDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <SearchInput
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder="Search coins..."
-          className="w-full sm:w-80"
-        />
-        <div className="flex items-center gap-2">
-          <Button
-            variant={viewMode === "grid" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setViewMode("grid")}
-            className="h-9"
-          >
-            <LayoutGrid className="w-4 h-4" />
-          </Button>
-          <Button
-            variant={viewMode === "table" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setViewMode("table")}
-            className="h-9"
-          >
-            <List className="w-4 h-4" />
-          </Button>
-        </div>
+      {/* View Mode Toggle */}
+      <div className="flex items-center justify-end gap-2">
+        <Button
+          variant={viewMode === "grid" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setViewMode("grid")}
+          className="h-9"
+        >
+          <LayoutGrid className="w-4 h-4" />
+        </Button>
+        <Button
+          variant={viewMode === "table" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setViewMode("table")}
+          className="h-9"
+        >
+          <List className="w-4 h-4" />
+        </Button>
       </div>
 
       {!coins || coins.length === 0 ? (

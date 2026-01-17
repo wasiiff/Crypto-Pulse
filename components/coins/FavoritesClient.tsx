@@ -50,7 +50,7 @@ export default function FavoritesClient() {
     )
   }
 
-  if (!favorites || favorites.length === 0) {
+  if (!favorites || !Array.isArray(favorites) || favorites.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <Star className="w-16 h-16 text-muted-foreground mb-4" />

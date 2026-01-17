@@ -67,8 +67,10 @@ export default function MarketDashboard() {
   })
 
   useEffect(() => {
-    if (favorites) {
+    if (favorites && Array.isArray(favorites)) {
       setFavoriteIds(new Set(favorites.map((coin) => coin.id)))
+    } else {
+      setFavoriteIds(new Set())
     }
   }, [favorites])
 

@@ -4,6 +4,7 @@ import React from "react"
 import { useSearchParams } from "next/navigation"
 import LoginForm from "@/components/auth/LoginForm"
 import WalletLoginForm from "@/components/auth/WalletLoginForm"
+import { BackButton } from "@/components/ui/back-button"
 import Link from "next/link"
 import { TrendingUp, Shield, Star } from "lucide-react"
 
@@ -81,7 +82,10 @@ export default function LoginPage() {
         </div>
 
         <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12">
-          {isWalletMethod ? <WalletLoginForm /> : <LoginForm />}
+          <div className="w-full max-w-md">
+            <BackButton className="mb-6" />
+            {isWalletMethod ? <WalletLoginForm /> : <LoginForm />}
+          </div>
         </div>
       </div>
     </div>

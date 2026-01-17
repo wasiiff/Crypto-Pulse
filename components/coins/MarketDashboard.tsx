@@ -23,9 +23,14 @@ export default function MarketDashboard() {
   const [perPage] = useState(20)
   const totalPages = 100 // CoinGecko typically has ~10,000 coins, so 100 pages with 20 per page
 
+  // When searching, fetch more coins to show comprehensive results
+  const isSearching = searchQuery.trim().length > 0
+  const effectivePage = isSearching ? 1 : currentPage
+  const effectivePerPage = isSearching ? 250 : perPage
+
   const { data: coins, isLoading: coinsLoading } = useQuery({
-    queryKey: ["market-coins", currentPage, perPage],
-    queryFn: () => fetchMarketCoins(currentPage, perPage),
+    queryKey: ["market-coins", effectivePage, effectivePerPage],
+    queryFn: () => fetchMarketCoins(effectivePage, effectivePerPage),
   })
 
   const { data: favorites } = useQuery({
@@ -82,15 +87,7 @@ export default function MarketDashboard() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
-    window.scrollTo({ top: 0, behavior: "smooth" })
   }
-
-  // Reset to page 1 when search query changes
-  useEffect(() => {
-    if (searchQuery.trim()) {
-      setCurrentPage(1)
-    }
-  }, [searchQuery])
 
   if (coinsLoading) {
     return (
@@ -135,6 +132,15 @@ export default function MarketDashboard() {
         </div>
       ) : (
         <>
+          {/* Show search results count */}
+          {isSearching && (
+            <div className="mb-4">
+              <p className="text-sm text-muted-foreground">
+                Found {filteredCoins.length} coin{filteredCoins.length !== 1 ? 's' : ''} matching "{searchQuery}"
+              </p>
+            </div>
+          )}
+
           {viewMode === "grid" ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredCoins.map((coin) => (
@@ -154,7 +160,8 @@ export default function MarketDashboard() {
             />
           )}
 
-          {!searchQuery.trim() && (
+          {/* Only show pagination when not searching */}
+          {!isSearching && (
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}

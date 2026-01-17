@@ -1,5 +1,6 @@
 import React from "react"
 import SignupForm from "@/components/auth/SignupForm"
+import { BackButton } from "@/components/ui/back-button"
 import Link from "next/link"
 import { BarChart3, Bell, Globe, Sparkles } from "lucide-react"
 
@@ -25,7 +26,10 @@ export default function Page() {
       <div className="relative z-10 min-h-screen flex">
         {/* Left side - Form */}
         <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12">
-          <SignupForm />
+          <div className="w-full max-w-md">
+            <BackButton className="mb-6" />
+            <SignupForm />
+          </div>
         </div>
 
         {/* Right side - Branding */}

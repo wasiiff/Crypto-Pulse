@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { connectDB } from "@/lib/db"
 import User from "@/models/User"
+import { hashPassword } from "@/lib/password"
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,18 +16,24 @@ export async function POST(req: NextRequest) {
 
     await connectDB()
 
+    const normalizedAddress = walletAddress.toLowerCase()
+    const walletEmail = `${normalizedAddress}@wallet.blokklens`
+
     // Check if user exists with this wallet address
     let user = await User.findOne({ 
-      email: `${walletAddress.toLowerCase()}@wallet.blokklens` 
+      email: walletEmail
     })
 
     // If user doesn't exist, create one
     if (!user) {
+      // Hash the wallet address to use as password
+      const hashedPassword = await hashPassword(normalizedAddress)
+      
       user = await User.create({
-        name: `User ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`,
-        email: `${walletAddress.toLowerCase()}@wallet.blokklens`,
-        password: walletAddress, // Using wallet address as password
-        walletAddress: walletAddress.toLowerCase(),
+        name: `User ${normalizedAddress.slice(0, 6)}...${normalizedAddress.slice(-4)}`,
+        email: walletEmail,
+        password: hashedPassword,
+        walletAddress: normalizedAddress,
       })
     }
 

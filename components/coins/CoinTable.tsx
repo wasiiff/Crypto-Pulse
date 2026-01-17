@@ -17,11 +17,11 @@ export default function CoinTable({ coins, favoriteIds, onToggleFavorite }: Coin
   const { data: session } = useSession()
 
   return (
-    <div className="glass-card-light rounded-xl overflow-hidden border border-white/10 dark:border-white/8">
+    <div className="glass-card-light rounded-xl overflow-hidden border border-border">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-white/10 dark:border-border/30">
+            <tr className="border-b border-border">
               <th className="text-left py-4 px-4 text-sm font-medium card-text-muted">#</th>
               <th className="text-left py-4 px-4 text-sm font-medium card-text-muted">Coin</th>
               <th className="text-right py-4 px-4 text-sm font-medium card-text-muted">Price</th>
@@ -42,7 +42,7 @@ export default function CoinTable({ coins, favoriteIds, onToggleFavorite }: Coin
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.02 }}
-                  className="border-b border-white/5 dark:border-border/20 hover:bg-white/5 dark:hover:bg-background/60 transition-colors"
+                  className="border-b border-border hover:bg-muted/50 transition-colors"
                 >
                   <td className="py-4 px-4 text-sm card-text-muted">
                     {coin.market_cap_rank || index + 1}
@@ -52,7 +52,7 @@ export default function CoinTable({ coins, favoriteIds, onToggleFavorite }: Coin
                       <img
                         src={coin.image}
                         alt={coin.name}
-                        className="w-8 h-8 rounded-full ring-2 ring-white/20 dark:ring-border/20 group-hover:ring-primary/40 transition-all"
+                        className="w-8 h-8 rounded-full ring-2 ring-border group-hover:ring-primary/40 transition-all"
                       />
                       <div>
                         <p className="font-medium card-text group-hover:text-primary transition-colors">
@@ -99,13 +99,13 @@ export default function CoinTable({ coins, favoriteIds, onToggleFavorite }: Coin
                         variant="ghost"
                         size="sm"
                         onClick={() => onToggleFavorite?.(coin.id)}
-                        className="h-8 w-8 p-0 hover:bg-white/10 dark:hover:bg-background/80"
+                        className="h-8 w-8 p-0"
                       >
                         <Star
                           className={`w-4 h-4 transition-all ${
                             isFavorite 
                               ? "fill-yellow-400 text-yellow-400" 
-                              : "text-white/60 dark:text-muted-foreground hover:text-white dark:hover:text-foreground"
+                              : "text-muted-foreground hover:text-foreground"
                           }`}
                         />
                       </Button>

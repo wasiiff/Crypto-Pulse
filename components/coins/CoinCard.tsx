@@ -17,14 +17,14 @@ export default function CoinCard({ coin, isFavorite, onToggleFavorite }: CoinCar
   const isPositive = (coin.price_change_percentage_24h ?? 0) >= 0
 
   return (
-    <div className="glass-card-light rounded-xl p-5 border border-white/10 dark:border-white/8 hover:border-white/20 dark:hover:border-border/80 transition-all duration-300 group">
+    <div className="glass-card-light rounded-xl p-5 border border-border transition-all duration-300 group">
       <div className="flex items-start justify-between mb-4">
         <Link href={`/coins/${coin.id}`} className="flex items-center gap-3 flex-1">
           <div className="relative">
             <img
               src={coin.image}
               alt={coin.name}
-              className="relative w-12 h-12 rounded-full ring-2 ring-white/20 dark:ring-border group-hover:ring-primary/40 transition-all duration-300"
+              className="relative w-12 h-12 rounded-full ring-2 ring-border group-hover:ring-primary/40 transition-all duration-300"
             />
           </div>
           <div>
@@ -40,13 +40,13 @@ export default function CoinCard({ coin, isFavorite, onToggleFavorite }: CoinCar
             variant="ghost"
             size="sm"
             onClick={() => onToggleFavorite(coin.id)}
-            className="h-9 w-9 p-0 rounded-lg hover:bg-white/10 dark:hover:bg-background/60"
+            className="h-9 w-9 p-0 rounded-lg"
           >
             <Star
               className={`w-4 h-4 transition-all duration-300 ${
                 isFavorite 
                   ? "fill-yellow-500 text-yellow-500" 
-                  : "text-white/60 dark:text-muted-foreground hover:text-white dark:hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             />
           </Button>
@@ -78,14 +78,14 @@ export default function CoinCard({ coin, isFavorite, onToggleFavorite }: CoinCar
             </div>
 
             {coin.market_cap_rank && (
-              <span className="text-xs card-text-muted px-2 py-1 rounded-md bg-white/5 dark:bg-background border border-white/10 dark:border-border">
+              <span className="text-xs card-text-muted px-2 py-1 rounded-md bg-muted border border-border">
                 #{coin.market_cap_rank}
               </span>
             )}
           </div>
 
           {coin.market_cap && (
-            <div className="pt-3 border-t border-white/10 dark:border-border">
+            <div className="pt-3 border-t border-border">
               <div className="flex items-center justify-between">
                 <span className="text-xs card-text-muted">Market Cap</span>
                 <span className="text-sm font-medium card-text">

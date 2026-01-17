@@ -10,8 +10,8 @@ import {
    COINS
 ====================== */
 
-export const fetchMarketCoins = () =>
-  api<MarketCoin[]>("/api/coins/market");
+export const fetchMarketCoins = (page: number = 1, per_page: number = 20) =>
+  api<MarketCoin[]>(`/api/coins/market?page=${page}&per_page=${per_page}`);
 
 export const fetchTrendingCoins = () =>
   api<TrendingResponse>("/api/coins/trending");

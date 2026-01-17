@@ -20,7 +20,7 @@ export default function StatCard({ title, value, change, icon: Icon, trend }: St
       transition={{ duration: 0.5 }}
       whileHover={{ y: -4 }}
     >
-      <Card className="glass-card-light border border-white/10 dark:border-white/8 hover:border-white/20 dark:hover:border-border/50 transition-all duration-300">
+      <Card className="glass-card-light border border-border transition-all duration-300">
         <CardContent className="p-6">
           <div className="flex items-start justify-between">
             <div>
@@ -38,7 +38,7 @@ export default function StatCard({ title, value, change, icon: Icon, trend }: St
                 </p>
               )}
             </div>
-            <div className="p-3 rounded-xl bg-white/10 dark:bg-muted border border-white/20 dark:border-border">
+            <div className="p-3 rounded-xl bg-muted border border-border">
               <Icon className="w-6 h-6 card-text" />
             </div>
           </div>

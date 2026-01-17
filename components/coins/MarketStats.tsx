@@ -78,10 +78,10 @@ export default function MarketStats() {
         return (
           <div 
             key={idx} 
-            className="glass-card-light rounded-xl p-5 hover:border-white/20 dark:hover:border-border/80 transition-all duration-300"
+            className="glass-card-light rounded-xl p-5 border border-border transition-all duration-300"
           >
             <div className="flex items-start justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-white/10 dark:bg-background border border-white/20 dark:border-border flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-muted border border-border flex items-center justify-center">
                 <stat.icon className={`w-6 h-6 ${colors.icon}`} />
               </div>
               <span className={`text-xs font-medium px-2 py-1 rounded-md ${

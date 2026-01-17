@@ -28,7 +28,7 @@ export default function FavoritesClient() {
   if (status === "loading" || isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     )
   }
@@ -36,11 +36,11 @@ export default function FavoritesClient() {
   if (!session) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <Star className="w-16 h-16 text-gray-600 mb-4" />
-        <h2 className="text-2xl font-semibold text-white mb-2">
+        <Star className="w-16 h-16 text-muted-foreground mb-4" />
+        <h2 className="text-2xl font-semibold text-foreground mb-2">
           Sign in to save favorites
         </h2>
-        <p className="text-gray-400 mb-6">
+        <p className="text-muted-foreground mb-6">
           Create an account to track your favorite cryptocurrencies
         </p>
         <Link href="/auth/login">
@@ -53,11 +53,11 @@ export default function FavoritesClient() {
   if (!favorites || favorites.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <Star className="w-16 h-16 text-gray-600 mb-4" />
-        <h2 className="text-2xl font-semibold text-white mb-2">
+        <Star className="w-16 h-16 text-muted-foreground mb-4" />
+        <h2 className="text-2xl font-semibold text-foreground mb-2">
           No favorites yet
         </h2>
-        <p className="text-gray-400 mb-6">
+        <p className="text-muted-foreground mb-6">
           Start adding coins to your favorites list
         </p>
         <Link href="/">

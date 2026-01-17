@@ -7,6 +7,7 @@ import { NextAuthOptions } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import type { Session } from "next-auth";
 import type { Credentials } from "@/types/types";
+
 export const authOptions: NextAuthOptions = {
     session: {
         strategy: "jwt",
@@ -17,6 +18,7 @@ export const authOptions: NextAuthOptions = {
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
         }),
         CredentialsProvider({
+            id: "credentials",
             name: "Credentials",
             credentials: {
                 email: { label: "Email", type: "email" },
@@ -46,9 +48,40 @@ export const authOptions: NextAuthOptions = {
                     id: user._id.toString(),
                     email: user.email,
                     name: user.name,
+                    walletAddress: user.walletAddress,
                 } as any;
             },
+        }),
+        CredentialsProvider({
+            id: "wallet",
+            name: "Wallet",
+            credentials: {
+                walletAddress: { label: "Wallet Address", type: "text" }
+            },
 
+            async authorize(credentials: any) {
+                if (!credentials?.walletAddress) {
+                    throw new Error("Missing wallet address");
+                }
+
+                await connectDB();
+
+                const normalizedAddress = credentials.walletAddress.toLowerCase();
+                const walletEmail = `${normalizedAddress}@wallet.blokklens`;
+
+                const user = await User.findOne({ email: walletEmail });
+
+                if (!user) {
+                    throw new Error("Wallet not registered");
+                }
+
+                return {
+                    id: user._id.toString(),
+                    email: user.email,
+                    name: user.name,
+                    walletAddress: user.walletAddress,
+                } as any;
+            },
         }),
     ],
 
@@ -73,16 +106,23 @@ export const authOptions: NextAuthOptions = {
         async jwt({ token }: { token: JWT }) {
             await connectDB();
             const dbUser = await User.findOne({ email: token.email });
-            if (dbUser) token.id = dbUser._id.toString();
+            if (dbUser) {
+                token.id = dbUser._id.toString();
+                token.walletAddress = dbUser.walletAddress;
+            }
             return token as JWT;
         },
 
         async session({ session, token }: { session: Session; token: JWT }) {
             if (session.user) {
                 (session.user as any).id = token.id as string | undefined;
+                (session.user as any).walletAddress = token.walletAddress as string | undefined;
             }
             return session;
         },
     },
 
+    pages: {
+        signIn: '/auth/login',
+    },
 };

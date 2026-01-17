@@ -1,48 +1,62 @@
 "use client"
 
 import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { useAccount, useSignMessage } from 'wagmi'
-import { useEffect } from 'react'
+import { useAccount } from 'wagmi'
+import { useEffect, useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
 
 export default function WalletConnectButton() {
   const { address, isConnected } = useAccount()
   const router = useRouter()
+  const [isAuthenticating, setIsAuthenticating] = useState(false)
 
   useEffect(() => {
-    if (isConnected && address) {
+    if (isConnected && address && !isAuthenticating) {
       handleWalletAuth(address)
     }
   }, [isConnected, address])
 
   const handleWalletAuth = async (walletAddress: string) => {
+    if (isAuthenticating) return
+    
+    setIsAuthenticating(true)
     try {
+      const normalizedAddress = walletAddress.toLowerCase()
+      
       // Register/login user with wallet
       const res = await fetch('/api/auth/wallet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ walletAddress }),
+        body: JSON.stringify({ walletAddress: normalizedAddress }),
       })
 
       if (!res.ok) {
-        throw new Error('Failed to authenticate wallet')
+        const errorData = await res.json()
+        throw new Error(errorData.error || 'Failed to authenticate wallet')
       }
 
       const data = await res.json()
 
-      // Sign in with NextAuth using wallet credentials
-      const result = await signIn('credentials', {
+      // Sign in with NextAuth using the wallet provider
+      const result = await signIn('wallet', {
         redirect: false,
-        email: data.user.email,
-        password: walletAddress,
+        walletAddress: normalizedAddress,
       })
 
       if (result?.ok) {
         router.push('/')
+        router.refresh()
+      } else {
+        console.error('Sign in failed:', result?.error)
+        throw new Error(result?.error || 'Failed to sign in')
       }
     } catch (error) {
       console.error('Wallet authentication error:', error)
+      alert('Failed to authenticate with wallet. Please try again.')
+    } finally {
+      setIsAuthenticating(false)
     }
   }
 
@@ -76,6 +90,19 @@ export default function WalletConnectButton() {
             })}
           >
             {(() => {
+              if (isAuthenticating) {
+                return (
+                  <button
+                    type="button"
+                    disabled
+                    className="w-full h-12 bg-primary/20 border border-primary/30 rounded-xl transition-all flex items-center justify-center gap-3"
+                  >
+                    <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                    <span className="text-primary font-medium">Authenticating...</span>
+                  </button>
+                )
+              }
+
               if (!connected) {
                 return (
                   <button

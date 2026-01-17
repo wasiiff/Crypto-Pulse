@@ -7,6 +7,7 @@ import { useState, useEffect, useMemo } from "react"
 import { Loader2, LayoutGrid, List } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import SearchInput from "@/components/ui/search-input"
+import { Pagination } from "@/components/ui/pagination"
 import CoinCard from "./CoinCard"
 import CoinTable from "./CoinTable"
 
@@ -18,10 +19,13 @@ export default function MarketDashboard() {
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set())
   const [searchQuery, setSearchQuery] = useState("")
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [perPage] = useState(20)
+  const totalPages = 100 // CoinGecko typically has ~10,000 coins, so 100 pages with 20 per page
 
   const { data: coins, isLoading: coinsLoading } = useQuery({
-    queryKey: ["market-coins"],
-    queryFn: fetchMarketCoins,
+    queryKey: ["market-coins", currentPage, perPage],
+    queryFn: () => fetchMarketCoins(currentPage, perPage),
   })
 
   const { data: favorites } = useQuery({
@@ -76,6 +80,18 @@ export default function MarketDashboard() {
     )
   }, [coins, searchQuery])
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  // Reset to page 1 when search query changes
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      setCurrentPage(1)
+    }
+  }, [searchQuery])
+
   if (coinsLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -117,23 +133,36 @@ export default function MarketDashboard() {
         <div className="text-center py-12">
           <p className="text-gray-400">No coins found matching "{searchQuery}"</p>
         </div>
-      ) : viewMode === "grid" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredCoins.map((coin) => (
-            <CoinCard
-              key={coin.id}
-              coin={coin}
-              isFavorite={favoriteIds.has(coin.id)}
+      ) : (
+        <>
+          {viewMode === "grid" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filteredCoins.map((coin) => (
+                <CoinCard
+                  key={coin.id}
+                  coin={coin}
+                  isFavorite={favoriteIds.has(coin.id)}
+                  onToggleFavorite={session ? handleToggleFavorite : undefined}
+                />
+              ))}
+            </div>
+          ) : (
+            <CoinTable
+              coins={filteredCoins}
+              favoriteIds={favoriteIds}
               onToggleFavorite={session ? handleToggleFavorite : undefined}
             />
-          ))}
-        </div>
-      ) : (
-        <CoinTable
-          coins={filteredCoins}
-          favoriteIds={favoriteIds}
-          onToggleFavorite={session ? handleToggleFavorite : undefined}
-        />
+          )}
+
+          {!searchQuery.trim() && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              isLoading={coinsLoading}
+            />
+          )}
+        </>
       )}
     </div>
   )

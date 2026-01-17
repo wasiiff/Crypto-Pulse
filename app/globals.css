@@ -117,12 +117,39 @@
 
 @layer base {
   * {
-    border-color: var(--color-border);
-    outline-color: color-mix(in srgb, var(--color-ring) 50%, transparent);
+    @apply border-border outline-ring/50;
   }
+
+  html {
+    font-display: swap;
+    font-optical-sizing: auto;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  button,
+  [role="button"],
+  .cursor-pointer {
+    cursor: pointer !important;
+  }
+
+  a {
+    cursor: pointer !important;
+  }
+
+  button *,
+  [role="button"] *,
+  a * {
+    cursor: inherit !important;
+  }
+
+  img {
+    content-visibility: auto;
+    contain: layout style paint;
+  }
+
   body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+    @apply bg-background text-foreground;
   }
 }
 

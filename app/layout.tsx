@@ -5,6 +5,13 @@ import { Providers } from "./providers/providers";
 export const metadata: Metadata = {
   title: "BLOKK LENs — Real-time Cryptocurrency Tracking",
   description: "Track real-time cryptocurrency prices, market caps, and trends. Save your favorite coins and stay updated.",
+  icons: {
+    icon: [
+      { url: '/blokklens.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/blokklens.svg',
+    apple: '/blokklens.svg',
+  },
 };
 
 export default function RootLayout({
@@ -15,6 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/blokklens.svg" type="image/svg+xml" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

@@ -64,6 +64,11 @@ export default function Navbar() {
                     </div>
                   </Link>
                 )}
+                <Link href="/about">
+                  <div className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-background/50 cursor-pointer">
+                    About
+                  </div>
+                </Link>
               </div>
 
               {/* Actions */}
@@ -174,6 +179,14 @@ export default function Navbar() {
                     </div>
                   </Link>
                 )}
+                <Link href="/about">
+                  <div
+                    className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-all rounded-xl hover:bg-background/60 relative cursor-pointer hover:scale-105"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    About
+                  </div>
+                </Link>
 
                 {/* Mobile Auth Section */}
                 <div className="border-t border-border/20 mt-2 pt-2">

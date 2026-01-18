@@ -38,19 +38,23 @@ export default function Footer() {
             </p>
             <div className="flex items-center gap-3 mt-6">
               <a 
-                href="#" 
+                href="https://github.com/wasiiff" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 rounded-xl bg-background/60 backdrop-blur-md border border-border/30 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background/80 hover:border-border/50 transition-all duration-200"
               >
                 <Github className="w-5 h-5" />
               </a>
               <a 
-                href="#" 
+                href="https://twitter.com" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 rounded-xl bg-background/60 backdrop-blur-md border border-border/30 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background/80 hover:border-border/50 transition-all duration-200"
               >
                 <Twitter className="w-5 h-5" />
               </a>
               <a 
-                href="#" 
+                href="mailto:contact@blokklens.com" 
                 className="w-10 h-10 rounded-xl bg-background/60 backdrop-blur-md border border-border/30 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background/80 hover:border-border/50 transition-all duration-200"
               >
                 <Mail className="w-5 h-5" />
@@ -67,30 +71,30 @@ export default function Footer() {
               <Link href="/favorites" className="block text-muted-foreground hover:text-foreground transition-colors text-sm">
                 Watchlist
               </Link>
-              <a href="#" className="block text-muted-foreground hover:text-foreground transition-colors text-sm">
+              <Link href="/about" className="block text-muted-foreground hover:text-foreground transition-colors text-sm">
+                About
+              </Link>
+              <a href="https://www.coingecko.com/api" target="_blank" rel="noopener noreferrer" className="block text-muted-foreground hover:text-foreground transition-colors text-sm">
                 API Access
-              </a>
-              <a href="#" className="block text-muted-foreground hover:text-foreground transition-colors text-sm">
-                Mobile App
               </a>
             </div>
           </div>
 
           <div>
-            <h3 className="font-semibold mb-6 text-lg text-foreground">Company</h3>
+            <h3 className="font-semibold mb-6 text-lg text-foreground">Resources</h3>
             <div className="space-y-4">
-              <a href="#" className="block text-muted-foreground hover:text-foreground transition-colors text-sm">
-                About Us
+              <a href="https://docs.coingecko.com/" target="_blank" rel="noopener noreferrer" className="block text-muted-foreground hover:text-foreground transition-colors text-sm">
+                Documentation
               </a>
-              <a href="#" className="block text-muted-foreground hover:text-foreground transition-colors text-sm">
-                Careers
+              <a href="https://ui.shadcn.com/" target="_blank" rel="noopener noreferrer" className="block text-muted-foreground hover:text-foreground transition-colors text-sm">
+                Shadcn/ui
               </a>
-              <a href="#" className="block text-muted-foreground hover:text-foreground transition-colors text-sm">
-                Privacy Policy
+              <a href="https://github.com/wasiiff" target="_blank" rel="noopener noreferrer" className="block text-muted-foreground hover:text-foreground transition-colors text-sm">
+                GitHub
               </a>
-              <a href="#" className="block text-muted-foreground hover:text-foreground transition-colors text-sm">
-                Terms of Service
-              </a>
+              <Link href="/about" className="block text-muted-foreground hover:text-foreground transition-colors text-sm">
+                About Developer
+              </Link>
             </div>
           </div>
         </div>

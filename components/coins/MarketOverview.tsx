@@ -200,63 +200,98 @@ export default function MarketOverview({ searchQuery = "" }: MarketOverviewProps
       {/* Pagination Controls - Only show when not searching */}
       {!isSearching && (
         <div className="flex flex-col items-center gap-4 pt-8 pb-4">
-        <div className="flex items-center justify-center gap-2 flex-wrap">
-          <Button
-            variant="outline"
-            size="default"
-            onClick={handlePreviousPage}
-            disabled={currentPage === 1 || isLoading}
-            className="h-10 px-4 rounded-lg border-2 border-border/50 bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:border-primary/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
-          >
-            <ChevronLeft className="w-4 h-4 mr-1" />
-            <span className="font-medium">Previous</span>
-          </Button>
+          {/* Mobile Pagination */}
+          <div className="flex sm:hidden items-center justify-between w-full gap-3 px-2">
+            <Button
+              variant="outline"
+              size="default"
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1 || isLoading}
+              className="flex-1 h-11 rounded-xl border-2 border-border/50 bg-background/60 backdrop-blur-md hover:bg-primary/10 hover:border-primary/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl font-semibold"
+            >
+              <ChevronLeft className="w-5 h-5 mr-1" />
+              Prev
+            </Button>
 
-          <div className="flex items-center gap-1.5 px-2">
-            {getPageNumbers().map((page, index) => (
-              page === '...' ? (
-                <span key={`ellipsis-${index}`} className="px-2 text-muted-foreground font-medium">
-                  •••
-                </span>
-              ) : (
-                <Button
-                  key={page}
-                  variant={currentPage === page ? "default" : "outline"}
-                  size="default"
-                  onClick={() => handlePageClick(page as number)}
-                  disabled={isLoading}
-                  className={
-                    currentPage === page
-                      ? "h-10 w-10 p-0 rounded-lg bg-linear-to-br from-primary to-primary/80 text-primary-foreground font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 border-0 transition-all duration-200 scale-105"
-                      : "h-10 w-10 p-0 rounded-lg border-2 border-border/50 bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:border-primary/50 hover:scale-105 transition-all duration-200 font-medium shadow-sm"
-                  }
-                >
-                  {page}
-                </Button>
-              )
-            ))}
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-md border-2 border-primary/20 shadow-lg">
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <span className="text-sm font-bold text-foreground whitespace-nowrap">
+                {currentPage} / {TOTAL_PAGES}
+              </span>
+            </div>
+
+            <Button
+              variant="outline"
+              size="default"
+              onClick={handleNextPage}
+              disabled={currentPage === TOTAL_PAGES || isLoading}
+              className="flex-1 h-11 rounded-xl border-2 border-border/50 bg-background/60 backdrop-blur-md hover:bg-primary/10 hover:border-primary/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl font-semibold"
+            >
+              Next
+              <ChevronRight className="w-5 h-5 ml-1" />
+            </Button>
           </div>
 
-          <Button
-            variant="outline"
-            size="default"
-            onClick={handleNextPage}
-            disabled={currentPage === TOTAL_PAGES || isLoading}
-            className="h-10 px-4 rounded-lg border-2 border-border/50 bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:border-primary/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
-          >
-            <span className="font-medium">Next</span>
-            <ChevronRight className="w-4 h-4 ml-1" />
-          </Button>
-        </div>
+          {/* Desktop Pagination */}
+          <div className="hidden sm:flex items-center justify-center gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="default"
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1 || isLoading}
+              className="h-11 px-5 rounded-xl border-2 border-border/50 bg-background/60 backdrop-blur-md hover:bg-primary/10 hover:border-primary/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl font-semibold"
+            >
+              <ChevronLeft className="w-5 h-5 mr-1.5" />
+              <span className="hidden md:inline">Previous</span>
+              <span className="md:hidden">Prev</span>
+            </Button>
 
-        {/* Page Info */}
-        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted/30 backdrop-blur-sm border border-border/30">
-          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-          <p className="text-sm font-medium text-muted-foreground">
-            Page <span className="text-foreground font-semibold">{currentPage}</span> of <span className="text-foreground font-semibold">{TOTAL_PAGES}</span>
-            <span className="hidden sm:inline"> • {ITEMS_PER_PAGE} coins per page</span>
-          </p>
-        </div>
+            <div className="flex items-center gap-1.5 px-2">
+              {getPageNumbers().map((page, index) => (
+                page === '...' ? (
+                  <span key={`ellipsis-${index}`} className="px-2 text-muted-foreground font-bold text-lg">
+                    •••
+                  </span>
+                ) : (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="default"
+                    onClick={() => handlePageClick(page as number)}
+                    disabled={isLoading}
+                    className={
+                      currentPage === page
+                        ? "h-11 w-11 p-0 rounded-xl bg-gradient-to-br from-primary via-primary to-primary/80 text-primary-foreground font-bold border-0 transition-all duration-200 scale-110 hover:scale-115"
+                        : "h-11 w-11 p-0 rounded-xl border-2 border-border/50 bg-background/60 backdrop-blur-md hover:bg-primary/10 hover:border-primary/50 hover:scale-110 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl"
+                    }
+                  >
+                    {page}
+                  </Button>
+                )
+              ))}
+            </div>
+
+            <Button
+              variant="outline"
+              size="default"
+              onClick={handleNextPage}
+              disabled={currentPage === TOTAL_PAGES || isLoading}
+              className="h-11 px-5 rounded-xl border-2 border-border/50 bg-background/60 backdrop-blur-md hover:bg-primary/10 hover:border-primary/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl font-semibold"
+            >
+              <span className="hidden md:inline">Next</span>
+              <span className="md:hidden">Next</span>
+              <ChevronRight className="w-5 h-5 ml-1.5" />
+            </Button>
+          </div>
+
+          {/* Page Info */}
+          <div className="flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-muted/40 backdrop-blur-md border-2 border-border/30 shadow-lg">
+            <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-lg shadow-primary/50" />
+            <p className="text-sm font-semibold text-muted-foreground">
+              Page <span className="text-foreground font-bold text-base">{currentPage}</span> of <span className="text-foreground font-bold text-base">{TOTAL_PAGES}</span>
+              <span className="hidden md:inline"> • <span className="text-foreground font-bold">{ITEMS_PER_PAGE}</span> coins per page</span>
+            </p>
+          </div>
         </div>
       )}
     </div>

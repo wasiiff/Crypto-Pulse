@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { signIn } from "next-auth/react"
 import Link from "next/link"
 import { loginSchema } from "@/lib/validators/auth"
+import { useRouter } from "next/navigation"
 import { z } from "zod"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -25,6 +26,8 @@ export default function LoginForm() {
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
 
+  const router = useRouter()
+
   async function onSubmit(data: FormData) {
     setError(null)
     const res = await signIn("credentials", {
@@ -36,7 +39,7 @@ export default function LoginForm() {
     if (res?.error) {
       setError(res.error)
     } else if (res?.ok) {
-      window.location.href = "/"
+      router.push("/")
     }
   }
 

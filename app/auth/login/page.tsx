@@ -1,15 +1,11 @@
-"use client"
-
 import React from "react"
-import { useSearchParams } from "next/navigation"
 import LoginForm from "@/components/auth/LoginForm"
 import WalletLoginForm from "@/components/auth/WalletLoginForm"
 import Link from "next/link"
 import { TrendingUp, Shield, Star } from "lucide-react"
 
-export default function LoginPage() {
-  const searchParams = useSearchParams()
-  const method = searchParams.get('method')
+export default function LoginPage({ searchParams }: { searchParams?: { method?: string } }) {
+  const method = searchParams?.method
   const isWalletMethod = method === 'wallet'
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">

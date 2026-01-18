@@ -1,156 +1,208 @@
 "use client"
 
 import Link from "next/link"
-import { useSession, signOut } from "next-auth/react"
+import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/ui/logo"
-import { Star, LogOut, User, Menu, X, ChevronRight } from "lucide-react"
-import { useState } from "react"
+import { Star, Menu, X } from "lucide-react"
+import { useState, useEffect } from "react"
+import { ThemeToggle } from "@/components/theme-toggle"
+import GetStartedDropdown from "./GetStartedDropdown"
 
 export default function Navbar() {
   const { data: session } = useSession()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   return (
-    <nav className="sticky top-0 z-50">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-2xl border-b border-white/[0.06]" />
-      
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          <div className="flex items-center gap-12">
-            <Link href="/" className="flex items-center gap-3 group">
-              <Logo />
-              <span className="text-xl font-bold text-white group-hover:text-gradient transition-all duration-300">
-                CryptoPulse
-              </span>
-            </Link>
-
-            <div className="hidden md:flex items-center gap-1">
-              <Link 
-                href="/" 
-                className="px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200"
-              >
-                Markets
-              </Link>
-              {session && (
-                <Link 
-                  href="/favorites" 
-                  className="px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200 flex items-center gap-2"
-                >
-                  <Star className="w-4 h-4" />
-                  Watchlist
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-transparent">
+      <div className="relative flex flex-col justify-start items-center w-full">
+        <div className={`self-stretch flex flex-col items-center relative z-10 transition-all duration-500 ${isScrolled ? 'py-3' : 'pt-6 pb-3'}`}>
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center justify-center w-full px-4 sm:px-6 md:px-8 lg:px-12">
+            <div className="flex items-center justify-between w-full max-w-6xl">
+              {/* Logo */}
+              <div className="flex items-center">
+                <Link href="/">
+                  <div className={`flex items-center space-x-3 px-4 py-2 rounded-xl backdrop-blur-md transition-all duration-300 cursor-pointer hover:scale-105 ${
+                      isScrolled
+                        ? 'bg-background/60 border border-border/30'
+                        : 'bg-background/40 border border-border/20'
+                    }`}>
+                    <Logo />
+                    <div className="flex flex-col">
+                      <span className="font-bold text-lg text-foreground leading-none">BLOKK LENs</span>
+                    </div>
+                  </div>
                 </Link>
-              )}
+              </div>
+
+              {/* Navigation Links */}
+              <div className={`flex items-center space-x-2 px-6 py-3 rounded-xl backdrop-blur-md transition-all duration-300 ${
+                  isScrolled
+                    ? 'bg-background/60 border border-border/30'
+                    : 'bg-background/40 border border-border/20'
+                }`}>
+                <Link href="/">
+                  <div className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-background/50 cursor-pointer">
+                    Markets
+                  </div>
+                </Link>
+                {session && (
+                  <Link href="/favorites">
+                    <div className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-background/50 cursor-pointer inline-flex items-center gap-2">
+                      <Star className="w-4 h-4" />
+                      Watchlist
+                    </div>
+                  </Link>
+                )}
+                <Link href="/about">
+                  <div className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-background/50 cursor-pointer">
+                    About
+                  </div>
+                </Link>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center space-x-3">
+                {/* GitHub Star Button */}
+                <div className="hover:scale-105 transition-transform">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`h-10 px-4 rounded-xl backdrop-blur-md transition-all duration-300 group ${
+                      isScrolled
+                        ? 'bg-background/60 border border-border/30 hover:bg-background/80'
+                        : 'bg-background/40 border border-border/20 hover:bg-background/60'
+                    }`}
+                    onClick={() => window.open("https://github.com/wasiiff/blokk-lens", "_blank", "noopener,noreferrer")}
+                  >
+                    <svg 
+                      viewBox="0 0 16 16" 
+                      className="w-4 h-4 mr-2 text-muted-foreground group-hover:text-foreground transition-colors"
+                      fill="currentColor"
+                    >
+                      <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
+                    </svg>
+                    <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                      Give star
+                    </span>
+                  </Button>
+                </div>
+
+                {/* Theme Toggle */}
+                <div className="hover:scale-105 transition-transform">
+                  <ThemeToggle />
+                </div>
+
+                {/* Get Started Dropdown */}
+                <div className="hover:scale-105 transition-transform">
+                  <GetStartedDropdown isScrolled={isScrolled} />
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="hidden md:flex items-center gap-4">
-            {session ? (
-              <>
-                <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
-                    <User className="w-4 h-4 text-blue-400" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-white">{session.user?.name}</span>
-                    <span className="text-xs text-gray-500">Pro Member</span>
-                  </div>
+          {/* Mobile Navigation */}
+          <div className="lg:hidden flex flex-col items-center w-full space-y-3 px-4">
+            {/* Mobile Header */}
+            <div className="flex items-center justify-between w-full">
+              {/* Mobile Logo */}
+              <Link href="/">
+                <div className={`flex items-center space-x-2 backdrop-blur-xl rounded-2xl px-3 py-2 border shadow-lg transition-all duration-500 cursor-pointer ${
+                    isScrolled
+                      ? 'bg-background/20 border-border/10'
+                      : 'bg-background/40 border-border/20'
+                  }`}>
+                  <Logo />
+                  <span className="font-bold text-base text-foreground">BLOKK LENS</span>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => signOut()}
-                  className="text-gray-400 hover:text-white hover:bg-white/5"
-                >
-                  <LogOut className="w-4 h-4" />
-                </Button>
-              </>
-            ) : (
-              <>
-                <Link href="/auth/login">
-                  <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white">
-                    Sign in
-                  </Button>
-                </Link>
-                <Link href="/auth/register">
-                  <Button 
-                    size="sm" 
-                    className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0 shadow-lg shadow-blue-500/25"
-                  >
-                    Get Started
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                  </Button>
-                </Link>
-              </>
-            )}
-          </div>
+              </Link>
 
-          <button
-            className="md:hidden p-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+              {/* Mobile Menu Toggle */}
+              <div className="flex items-center gap-2">
+                {/* Theme Toggle */}
+                <div className="hover:scale-105 transition-transform">
+                  <ThemeToggle />
+                </div>
+
+                <div className="hover:scale-105 transition-transform">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`h-10 w-10 backdrop-blur-xl border transition-all duration-300 rounded-2xl shadow-lg ${
+                      isScrolled
+                        ? 'bg-background/20 border-border/10 hover:bg-background/40'
+                        : 'bg-background/40 border-border/20 hover:bg-background/60'
+                    }`}
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  >
+                    <div className={`transition-transform duration-300 ${mobileMenuOpen ? 'rotate-180' : ''}`}>
+                      {mobileMenuOpen ? (
+                        <X className="w-4 h-4" />
+                      ) : (
+                        <Menu className="w-4 h-4" />
+                      )}
+                    </div>
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Navigation Links */}
+            <div className={`w-full overflow-hidden transition-all duration-300 ${
+                mobileMenuOpen ? 'opacity-100 max-h-[600px]' : 'opacity-0 max-h-0'
+              }`}>
+              <div className={`flex flex-col gap-2 backdrop-blur-xl rounded-2xl p-3 border shadow-lg transition-all duration-500 ${
+                isScrolled
+                  ? 'bg-background/20 border-border/10'
+                  : 'bg-background/40 border-border/20'
+              }`}>
+                <Link href="/">
+                  <div
+                    className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-all rounded-xl hover:bg-background/60 relative cursor-pointer hover:scale-105"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Markets
+                  </div>
+                </Link>
+                {session && (
+                  <Link href="/favorites">
+                    <div
+                      className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-all rounded-xl hover:bg-background/60 relative cursor-pointer hover:scale-105 inline-flex items-center gap-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Star className="w-4 h-4" />
+                      Watchlist
+                    </div>
+                  </Link>
+                )}
+                <Link href="/about">
+                  <div
+                    className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-all rounded-xl hover:bg-background/60 relative cursor-pointer hover:scale-105"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    About
+                  </div>
+                </Link>
+
+                {/* Mobile Auth Section */}
+                <div className="border-t border-border/20 mt-2 pt-2">
+                  <GetStartedDropdown isScrolled={isScrolled} />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-
-      {mobileMenuOpen && (
-        <div className="md:hidden absolute top-full left-0 right-0 bg-black/95 backdrop-blur-2xl border-b border-white/[0.06]">
-          <div className="px-4 py-6 space-y-4">
-            <Link 
-              href="/" 
-              className="block px-4 py-3 text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Markets
-            </Link>
-            {session && (
-              <Link 
-                href="/favorites" 
-                className="block px-4 py-3 text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Watchlist
-              </Link>
-            )}
-            
-            <div className="pt-4 border-t border-white/[0.06]">
-              {session ? (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.03]">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
-                      <User className="w-5 h-5 text-blue-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-white">{session.user?.name}</p>
-                      <p className="text-xs text-gray-500">{session.user?.email}</p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-center"
-                    onClick={() => signOut()}
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign out
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <Link href="/auth/login" className="block" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="outline" className="w-full">Sign in</Button>
-                  </Link>
-                  <Link href="/auth/register" className="block" onClick={() => setMobileMenuOpen(false)}>
-                    <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-500">
-                      Get Started
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </nav>
   )
 }

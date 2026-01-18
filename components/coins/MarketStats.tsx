@@ -1,15 +1,22 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { fetchMarketCoins } from "@/services/queries"
+import { fetchMarketCoins, fetchGlobalMarketData } from "@/services/queries"
 import { TrendingUp, DollarSign, BarChart3, Activity } from "lucide-react"
 import { StatCardSkeleton } from "@/components/ui/skeleton"
 
 export default function MarketStats() {
-  const { data: coins, isLoading } = useQuery({
-    queryKey: ["market-coins"],
-    queryFn: fetchMarketCoins,
+  const { data: globalData, isLoading: isGlobalLoading } = useQuery({
+    queryKey: ["global-market-data"],
+    queryFn: fetchGlobalMarketData,
   })
+
+  const { data: coins, isLoading: isCoinsLoading } = useQuery({
+    queryKey: ["market-coins-stats"],
+    queryFn: () => fetchMarketCoins(1, 100), // Fetch top 100 for better stats
+  })
+
+  const isLoading = isGlobalLoading || isCoinsLoading
 
   if (isLoading) {
     return (
@@ -21,8 +28,12 @@ export default function MarketStats() {
     )
   }
 
-  const totalMarketCap = coins?.reduce((acc, coin) => acc + (coin.market_cap || 0), 0) || 0
-  const totalVolume = coins?.reduce((acc, coin) => acc + (coin.total_volume || 0), 0) || 0
+  // Use global data for market cap and volume
+  const totalMarketCap = globalData?.data?.total_market_cap?.usd || 0
+  const totalVolume = globalData?.data?.total_volume?.usd || 0
+  const marketCapChange = globalData?.data?.market_cap_change_percentage_24h_usd || 0
+
+  // Calculate average change and top gainer from coins
   const avgChange = (coins?.reduce((acc, coin) => acc + (coin.price_change_percentage_24h || 0), 0) || 0) / (coins?.length || 1)
   const topGainer = coins?.reduce((max, coin) => 
     (coin.price_change_percentage_24h || 0) > (max.price_change_percentage_24h || 0) ? coin : max
@@ -32,16 +43,16 @@ export default function MarketStats() {
     {
       label: "Total Market Cap",
       value: `$${(totalMarketCap / 1e12).toFixed(2)}T`,
-      change: "+2.4%",
-      trend: "up" as const,
+      change: `${marketCapChange >= 0 ? "+" : ""}${marketCapChange.toFixed(1)}%`,
+      trend: marketCapChange >= 0 ? "up" as const : "down" as const,
       icon: DollarSign,
       color: "blue",
     },
     {
       label: "24h Volume",
       value: `$${(totalVolume / 1e9).toFixed(1)}B`,
-      change: "+5.2%",
-      trend: "up" as const,
+      change: avgChange >= 0 ? "Bullish" : "Bearish",
+      trend: avgChange >= 0 ? "up" as const : "down" as const,
       icon: BarChart3,
       color: "purple",
     },
@@ -64,11 +75,11 @@ export default function MarketStats() {
   ]
 
   const colorClasses = {
-    blue: { bg: "from-blue-500/20 to-blue-600/10", icon: "text-blue-400", glow: "shadow-blue-500/20" },
-    purple: { bg: "from-purple-500/20 to-purple-600/10", icon: "text-purple-400", glow: "shadow-purple-500/20" },
-    green: { bg: "from-green-500/20 to-green-600/10", icon: "text-green-400", glow: "shadow-green-500/20" },
-    red: { bg: "from-red-500/20 to-red-600/10", icon: "text-red-400", glow: "shadow-red-500/20" },
-    cyan: { bg: "from-cyan-500/20 to-cyan-600/10", icon: "text-cyan-400", glow: "shadow-cyan-500/20" },
+    blue: { icon: "text-foreground" },
+    purple: { icon: "text-foreground" },
+    green: { icon: "text-foreground" },
+    red: { icon: "text-foreground" },
+    cyan: { icon: "text-foreground" },
   }
 
   return (
@@ -78,22 +89,22 @@ export default function MarketStats() {
         return (
           <div 
             key={idx} 
-            className="glass-card p-5 group hover:border-white/[0.12] transition-all duration-300"
+            className="glass-card-light rounded-xl p-5 border border-border transition-all duration-300"
           >
             <div className="flex items-start justify-between mb-4">
-              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colors.bg} flex items-center justify-center shadow-lg ${colors.glow}`}>
+              <div className="w-12 h-12 rounded-xl bg-muted border border-border flex items-center justify-center">
                 <stat.icon className={`w-6 h-6 ${colors.icon}`} />
               </div>
               <span className={`text-xs font-medium px-2 py-1 rounded-md ${
                 stat.trend === "up" 
-                  ? "bg-green-500/10 text-green-400" 
-                  : "bg-red-500/10 text-red-400"
+                  ? "bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20" 
+                  : "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20"
               }`}>
                 {stat.change}
               </span>
             </div>
-            <p className="text-sm text-gray-500 mb-1">{stat.label}</p>
-            <p className="text-2xl font-bold text-white">{stat.value}</p>
+            <p className="text-sm card-text-muted mb-1">{stat.label}</p>
+            <p className="text-2xl font-bold card-text">{stat.value}</p>
           </div>
         )
       })}

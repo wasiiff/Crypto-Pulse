@@ -7,10 +7,22 @@ import CoinCard from "./CoinCard"
 import { CoinCardSkeleton } from "@/components/ui/skeleton"
 import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, Filter } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 
 const ITEMS_PER_PAGE = 20
 const TOTAL_PAGES = 100 // CoinGecko supports up to ~10,000 coins
+
+const CHAIN_FILTERS = [
+  { id: "all", name: "All Chains", icon: "🌐", keywords: [] },
+  { id: "ethereum", name: "Ethereum", icon: "Ξ", keywords: ["ethereum", "eth"] },
+  { id: "bsc", name: "BSC", icon: "🟡", keywords: ["binance", "bsc", "bnb"] },
+  { id: "polygon", name: "Polygon", icon: "🟣", keywords: ["polygon", "matic"] },
+  { id: "arbitrum", name: "Arbitrum", icon: "🔵", keywords: ["arbitrum", "arb"] },
+  { id: "optimism", name: "Optimism", icon: "🔴", keywords: ["optimism", "op"] },
+  { id: "avalanche", name: "Avalanche", icon: "🔺", keywords: ["avalanche", "avax"] },
+  { id: "solana", name: "Solana", icon: "◎", keywords: ["solana", "sol"] },
+]
 
 interface MarketOverviewProps {
   searchQuery?: string
@@ -21,8 +33,10 @@ export default function MarketOverview({ searchQuery = "" }: MarketOverviewProps
   const queryClient = useQueryClient()
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set())
   const [currentPage, setCurrentPage] = useState(1)
+  // const [selectedChain, setSelectedChain] = useState("all") // Commented out for future use
 
   const isSearching = searchQuery.trim().length > 0
+  // const isFiltering = selectedChain !== "all" // Commented out for future use
 
   // Reset to first page when search query changes
   useEffect(() => {
@@ -35,6 +49,49 @@ export default function MarketOverview({ searchQuery = "" }: MarketOverviewProps
     queryFn: () => fetchMarketCoins(currentPage, ITEMS_PER_PAGE),
     enabled: !isSearching,
   })
+
+  // Chain filtering logic - Commented out for future use
+  // const filteredCoins = useMemo(() => {
+  //   if (!marketCoins || selectedChain === "all") return marketCoins
+  //   
+  //   const selectedFilter = CHAIN_FILTERS.find(f => f.id === selectedChain)
+  //   if (!selectedFilter || selectedFilter.keywords.length === 0) return marketCoins
+  //
+  //   return marketCoins.filter(coin => {
+  //     const coinName = coin.name.toLowerCase()
+  //     const coinSymbol = coin.symbol.toLowerCase()
+  //     const coinId = coin.id.toLowerCase()
+  //     
+  //     return selectedFilter.keywords.some(keyword => {
+  //       const keywordLower = keyword.toLowerCase()
+  //       
+  //       if (coinSymbol === keywordLower || coinSymbol.startsWith(keywordLower)) return true
+  //       if (coinName === keywordLower || coinName.startsWith(keywordLower)) return true
+  //       if (coinId === keywordLower || coinId.startsWith(keywordLower)) return true
+  //       
+  //       const nameWords = coinName.split(/[\s-_]+/)
+  //       const symbolWords = coinSymbol.split(/[\s-_]+/)
+  //       const idWords = coinId.split(/[\s-_]+/)
+  //       
+  //       return nameWords.some(word => word === keywordLower || word.startsWith(keywordLower)) ||
+  //              symbolWords.some(word => word === keywordLower || word.startsWith(keywordLower)) ||
+  //              idWords.some(word => word === keywordLower || word.startsWith(keywordLower))
+  //     })
+  //   })
+  // }, [marketCoins, selectedChain])
+
+  // const paginatedFilteredCoins = useMemo(() => {
+  //   if (!isFiltering || !filteredCoins) return filteredCoins
+  //   
+  //   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+  //   const endIndex = startIndex + ITEMS_PER_PAGE
+  //   return filteredCoins.slice(startIndex, endIndex)
+  // }, [filteredCoins, currentPage, isFiltering])
+
+  // const totalFilteredPages = useMemo(() => {
+  //   if (!isFiltering || !filteredCoins) return TOTAL_PAGES
+  //   return Math.ceil(filteredCoins.length / ITEMS_PER_PAGE)
+  // }, [filteredCoins, isFiltering])
 
   // Fetch search results
   const { data: searchResults, isLoading: searchLoading } = useQuery({
@@ -63,6 +120,7 @@ export default function MarketOverview({ searchQuery = "" }: MarketOverviewProps
 
   const coins = isSearching ? searchCoinsData : marketCoins
   const isLoading = isSearching ? (searchLoading || searchCoinsDataLoading) : marketCoinsLoading
+  const displayTotalPages = TOTAL_PAGES // isFiltering ? totalFilteredPages : TOTAL_PAGES
 
   const { data: favorites } = useQuery({
     queryKey: ["favorites"],
@@ -111,7 +169,7 @@ export default function MarketOverview({ searchQuery = "" }: MarketOverviewProps
   }
 
   const handleNextPage = () => {
-    setCurrentPage((prev) => Math.min(prev + 1, TOTAL_PAGES))
+    setCurrentPage((prev) => Math.min(prev + 1, displayTotalPages))
   }
 
   const handlePageClick = (page: number) => {
@@ -122,9 +180,10 @@ export default function MarketOverview({ searchQuery = "" }: MarketOverviewProps
   const getPageNumbers = () => {
     const pages: (number | string)[] = []
     const maxPagesToShow = 5
+    const totalPages = displayTotalPages
     
-    if (TOTAL_PAGES <= maxPagesToShow) {
-      for (let i = 1; i <= TOTAL_PAGES; i++) {
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
         pages.push(i)
       }
     } else {
@@ -133,11 +192,11 @@ export default function MarketOverview({ searchQuery = "" }: MarketOverviewProps
           pages.push(i)
         }
         pages.push('...')
-        pages.push(TOTAL_PAGES)
-      } else if (currentPage >= TOTAL_PAGES - 2) {
+        pages.push(totalPages)
+      } else if (currentPage >= totalPages - 2) {
         pages.push(1)
         pages.push('...')
-        for (let i = TOTAL_PAGES - 3; i <= TOTAL_PAGES; i++) {
+        for (let i = totalPages - 3; i <= totalPages; i++) {
           pages.push(i)
         }
       } else {
@@ -147,7 +206,7 @@ export default function MarketOverview({ searchQuery = "" }: MarketOverviewProps
         pages.push(currentPage)
         pages.push(currentPage + 1)
         pages.push('...')
-        pages.push(TOTAL_PAGES)
+        pages.push(totalPages)
       }
     }
     
@@ -166,6 +225,40 @@ export default function MarketOverview({ searchQuery = "" }: MarketOverviewProps
 
   return (
     <div className="space-y-6">
+      {/* Chain Filter - Commented out for future implementation */}
+      {/* <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-2">
+          <Filter className="w-4 h-4 text-muted-foreground" />
+          <span className="text-sm font-semibold text-muted-foreground">Filter by Chain</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {CHAIN_FILTERS.map((chain) => (
+            <Button
+              key={chain.id}
+              variant={selectedChain === chain.id ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedChain(chain.id)}
+              className={
+                selectedChain === chain.id
+                  ? "h-9 px-4 rounded-full bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold border-0 transition-all duration-200 hover:scale-105"
+                  : "h-9 px-4 rounded-full border-2 border-border/50 bg-background/60 backdrop-blur-md hover:bg-primary/10 hover:border-primary/50 hover:scale-105 transition-all duration-200 font-medium"
+              }
+            >
+              <span className="text-base mr-1.5">{chain.icon}</span>
+              <span className="text-sm">{chain.name}</span>
+            </Button>
+          ))}
+        </div>
+        {selectedChain !== "all" && filteredCoins && (
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 backdrop-blur-md border border-primary/20">
+            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            <span className="text-sm font-semibold text-foreground">
+              Found {filteredCoins.length} {CHAIN_FILTERS.find(f => f.id === selectedChain)?.name} coins
+            </span>
+          </div>
+        )}
+      </div> */}
+
       {/* Coins Grid */}
       {!coins || coins.length === 0 ? (
         <div className="text-center py-12">
@@ -185,9 +278,9 @@ export default function MarketOverview({ searchQuery = "" }: MarketOverviewProps
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {coins.map((coin) => (
+            {coins.map((coin, index) => (
               <CoinCard
-                key={coin.id}
+                key={`${coin.id}-${index}`}
                 coin={coin}
                 isFavorite={favoriteIds.has(coin.id)}
                 onToggleFavorite={session ? handleToggleFavorite : undefined}
@@ -216,7 +309,7 @@ export default function MarketOverview({ searchQuery = "" }: MarketOverviewProps
             <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-md border-2 border-primary/20 shadow-lg">
               <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               <span className="text-sm font-bold text-foreground whitespace-nowrap">
-                {currentPage} / {TOTAL_PAGES}
+                {currentPage} / {displayTotalPages}
               </span>
             </div>
 
@@ -224,7 +317,7 @@ export default function MarketOverview({ searchQuery = "" }: MarketOverviewProps
               variant="outline"
               size="default"
               onClick={handleNextPage}
-              disabled={currentPage === TOTAL_PAGES || isLoading}
+              disabled={currentPage === displayTotalPages || isLoading}
               className="flex-1 h-11 rounded-xl border-2 border-border/50 bg-background/60 backdrop-blur-md hover:bg-primary/10 hover:border-primary/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl font-semibold"
             >
               Next
@@ -275,7 +368,7 @@ export default function MarketOverview({ searchQuery = "" }: MarketOverviewProps
               variant="outline"
               size="default"
               onClick={handleNextPage}
-              disabled={currentPage === TOTAL_PAGES || isLoading}
+              disabled={currentPage === displayTotalPages || isLoading}
               className="h-11 px-5 rounded-xl border-2 border-border/50 bg-background/60 backdrop-blur-md hover:bg-primary/10 hover:border-primary/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl font-semibold"
             >
               <span className="hidden md:inline">Next</span>
@@ -288,7 +381,7 @@ export default function MarketOverview({ searchQuery = "" }: MarketOverviewProps
           <div className="flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-muted/40 backdrop-blur-md border-2 border-border/30 shadow-lg">
             <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-lg shadow-primary/50" />
             <p className="text-sm font-semibold text-muted-foreground">
-              Page <span className="text-foreground font-bold text-base">{currentPage}</span> of <span className="text-foreground font-bold text-base">{TOTAL_PAGES}</span>
+              Page <span className="text-foreground font-bold text-base">{currentPage}</span> of <span className="text-foreground font-bold text-base">{displayTotalPages}</span>
               <span className="hidden md:inline"> • <span className="text-foreground font-bold">{ITEMS_PER_PAGE}</span> coins per page</span>
             </p>
           </div>

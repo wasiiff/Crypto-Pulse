@@ -137,6 +137,13 @@ export default function ConversionClient() {
 
       <div className="relative flex flex-col justify-start items-center w-full">
         <div className="w-full max-w-none px-4 sm:px-6 md:px-8 lg:px-12 xl:max-w-[1400px] xl:w-[1400px] relative flex flex-col justify-start items-start">
+          {/* Left decorative pattern */}
+          <LeftDecorativePattern />
+
+          {/* Right decorative pattern */}
+          <RightDecorativePattern />
+
+          {/* Vertical border lines */}
           <VerticalBorderLines />
 
           <div className="self-stretch pt-[9px] overflow-hidden flex flex-col justify-center items-start relative z-10 w-full">

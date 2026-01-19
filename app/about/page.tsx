@@ -6,6 +6,7 @@ import Footer from "@/components/layout/Footer"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { StripeBgGuides } from "@/components/ui/StripeBg"
+import { BackgroundGrid, LeftDecorativePattern, RightDecorativePattern, VerticalBorderLines } from "@/components/ui/background-patterns"
 
 export default function AboutPage() {
   const features = [
@@ -18,28 +19,20 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen bg-background relative overflow-x-hidden">
-      <div className="absolute inset-0 opacity-20">
-        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="about-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="hsl(var(--border))" strokeWidth="0.5" opacity="0.3"/>
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#about-grid)" />
-        </svg>
-      </div>
+      <BackgroundGrid />
 
       <div className="relative flex flex-col justify-start items-center w-full">
-        <div className="w-full max-w-none px-4 sm:px-6 md:px-8 lg:px-12 lg:max-w-[1270px] lg:w-[1360px] relative flex flex-col justify-start items-start">
-          <div className="w-px h-full absolute left-4 sm:left-6 md:left-8 lg:left-0 top-0 bg-border z-0"></div>
-          <div className="w-px h-full absolute right-4 sm:right-6 md:right-8 lg:right-0 top-0 bg-border z-0"></div>
+        <div className="w-full max-w-none px-4 sm:px-6 md:px-8 lg:px-12 xl:max-w-[1400px] xl:w-[1400px] relative flex flex-col justify-start items-start">
+          <LeftDecorativePattern />
+          <RightDecorativePattern />
+          <VerticalBorderLines />
 
           <div className="self-stretch pt-[9px] overflow-hidden border-b border-border flex flex-col justify-center items-center relative z-10">
             <Navbar />
 
             <div className="pt-32 pb-16 flex flex-col justify-start items-center px-4 md:px-8 lg:px-12 w-full">
               <div className="w-full max-w-[937px] flex flex-col justify-center items-center gap-6 mb-12">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif text-center">About Blokklens</h1>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-center">About Blokklens</h1>
                 <p className="text-lg md:text-xl text-muted-foreground text-center max-w-[650px]">
                   Your ultimate cryptocurrency platform. Track markets, get AI-powered trading insights, and launch your own coins — all in one place.
                 </p>
@@ -172,7 +165,7 @@ export default function AboutPage() {
             <div className="self-stretch pt-[9px] overflow-hidden flex flex-col justify-center items-center relative z-10">
               <div className="py-16 sm:py-20 md:py-24 lg:py-32 flex flex-col justify-start items-center px-2 sm:px-4 md:px-8 lg:px-12 w-full">
                 <div className="w-full max-w-[800px] text-center space-y-8">
-                  <h2 className="text-[32px] sm:text-[42px] md:text-[48px] lg:text-[56px] font-normal leading-[1.1] font-serif text-foreground">
+                  <h2 className="text-[32px] sm:text-[42px] md:text-[48px] lg:text-[56px] font-bold leading-[1.1] text-foreground">
                     Meet the Developer
                   </h2>
                   <p className="text-lg md:text-xl text-muted-foreground max-w-[600px] mx-auto leading-relaxed font-medium">

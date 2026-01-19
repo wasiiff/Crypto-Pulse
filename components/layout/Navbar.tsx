@@ -56,6 +56,11 @@ export default function Navbar() {
                     Markets
                   </div>
                 </Link>
+                <Link href="/convert">
+                  <div className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-background/50 cursor-pointer">
+                    Convert
+                  </div>
+                </Link>
                 {session && (
                   <Link href="/favorites">
                     <div className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-background/50 cursor-pointer inline-flex items-center gap-2">
@@ -158,8 +163,8 @@ export default function Navbar() {
             </div>
 
             {/* Mobile Navigation Links */}
-            <div className={`w-full overflow-hidden transition-all duration-300 ${
-                mobileMenuOpen ? 'opacity-100 max-h-[600px]' : 'opacity-0 max-h-0'
+            <div className={`w-full transition-all duration-300 ${
+                mobileMenuOpen ? 'opacity-100 max-h-[600px]' : 'opacity-0 max-h-0 overflow-hidden'
               }`}>
               <div className={`flex flex-col gap-2 backdrop-blur-xl rounded-2xl p-3 border shadow-lg transition-all duration-500 ${
                 isScrolled
@@ -172,6 +177,14 @@ export default function Navbar() {
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Markets
+                  </div>
+                </Link>
+                <Link href="/convert">
+                  <div
+                    className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-all rounded-xl hover:bg-background/60 relative cursor-pointer hover:scale-105"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Convert
                   </div>
                 </Link>
                 {session && (

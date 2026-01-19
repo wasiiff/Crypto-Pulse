@@ -4,7 +4,8 @@ import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { signIn, useSession, signOut } from "next-auth/react"
 import { useAccount, useDisconnect } from "wagmi"
-import { ChevronDown, Mail, Wallet, LogOut, User, Chrome } from "lucide-react"
+import { useConnectModal } from '@rainbow-me/rainbowkit'
+import { ChevronDown, Mail, Wallet, LogOut, User, Chrome, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface GetStartedDropdownProps {
@@ -13,15 +14,74 @@ interface GetStartedDropdownProps {
 
 export default function GetStartedDropdown({ isScrolled }: GetStartedDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [isAuthenticating, setIsAuthenticating] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const { data: session } = useSession()
   const { address, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
+  const { openConnectModal } = useConnectModal()
   const router = useRouter()
 
   // Determine login method
   const isWalletLogin = session?.user?.email?.includes('@wallet.blokklens')
   const isGoogleLogin = session?.user?.email && !isWalletLogin && session?.user?.email?.includes('@')
+
+  // Handle wallet authentication when connected
+  useEffect(() => {
+    if (isConnected && address && !session && !isAuthenticating) {
+      handleWalletAuth(address)
+    }
+  }, [isConnected, address, session])
+
+  const handleWalletAuth = async (walletAddress: string) => {
+    if (isAuthenticating) return
+    
+    setIsAuthenticating(true)
+    try {
+      const normalizedAddress = walletAddress.toLowerCase()
+      
+      // Register/login user with wallet
+      const res = await fetch('/api/auth/wallet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ walletAddress: normalizedAddress }),
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.error || 'Failed to authenticate wallet')
+      }
+
+      // Sign in with NextAuth using the wallet provider
+      const result = await signIn('wallet', {
+        redirect: false,
+        walletAddress: normalizedAddress,
+      })
+
+      if (result?.ok) {
+        setIsOpen(false)
+        router.refresh()
+      } else {
+        console.error('Sign in failed:', result?.error)
+        throw new Error(result?.error || 'Failed to sign in')
+      }
+    } catch (error) {
+      console.error('Wallet authentication error:', error)
+      alert('Failed to authenticate with wallet. Please try again.')
+      if (isConnected) {
+        disconnect()
+      }
+    } finally {
+      setIsAuthenticating(false)
+    }
+  }
+
+  const handleWalletConnect = () => {
+    setIsOpen(false)
+    if (openConnectModal) {
+      openConnectModal()
+    }
+  }
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -80,7 +140,7 @@ export default function GetStartedDropdown({ isScrolled }: GetStartedDropdownPro
         </Button>
 
         {isOpen && (
-          <div className="absolute right-0 mt-2 w-64 rounded-xl backdrop-blur-xl bg-background/95 border border-border shadow-2xl overflow-hidden z-50">
+          <div className="fixed left-4 right-4 lg:right-0 lg:left-auto mt-2 lg:w-64 rounded-xl backdrop-blur-xl bg-background/95 border border-border shadow-2xl overflow-hidden z-[100]">
             {/* User Info */}
             <div className="p-4 border-b border-border/50">
               <div className="flex items-center gap-3">
@@ -140,7 +200,7 @@ export default function GetStartedDropdown({ isScrolled }: GetStartedDropdownPro
       </Button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-72 rounded-xl backdrop-blur-xl bg-background/95 border border-border shadow-2xl overflow-hidden z-50">
+        <div className="fixed left-4 right-4 lg:right-0 lg:left-auto mt-2 lg:w-72 rounded-xl backdrop-blur-xl bg-background/95 border border-border shadow-2xl overflow-hidden z-[100]">
           {/* Header */}
           <div className="p-4 border-b border-border/50">
             <h3 className="text-sm font-semibold text-foreground">Choose sign in method</h3>
@@ -149,28 +209,34 @@ export default function GetStartedDropdown({ isScrolled }: GetStartedDropdownPro
 
           {/* Options */}
           <div className="p-2 space-y-1">
-            {/* Wallet Connect - Highlighted */}
-            <div className="relative">
-              <div className="absolute -inset-0.5 bg-linear-to-r from-primary/50 to-purple-500/50 rounded-lg blur opacity-30"></div>
-              <button
-                onClick={() => {
-                  router.push('/auth/login?method=wallet')
-                  setIsOpen(false)
-                }}
-                className="relative w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 hover:bg-primary/20 border border-primary/30 transition-all group"
-              >
-                <div className="w-10 h-10 rounded-lg bg-primary/20 border border-primary/40 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Wallet className="w-5 h-5 text-primary" />
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="text-sm font-semibold text-foreground">Connect Wallet</p>
-                  <p className="text-xs text-muted-foreground">MetaMask, Trust, Coinbase</p>
-                </div>
-                <div className="px-2 py-1 rounded-md bg-primary/20 border border-primary/30">
-                  <span className="text-xs font-bold text-primary">Recommended</span>
-                </div>
-              </button>
-            </div>
+            {/* Wallet Connect - Highlighted with different color */}
+            <button
+              onClick={handleWalletConnect}
+              disabled={isAuthenticating}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 hover:border-purple-500/40 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isAuthenticating ? (
+                <>
+                  <div className="w-10 h-10 rounded-lg bg-purple-500/20 border border-purple-500/40 flex items-center justify-center">
+                    <Loader2 className="w-5 h-5 text-purple-400 animate-spin" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="text-sm font-semibold text-foreground">Connecting...</p>
+                    <p className="text-xs text-muted-foreground">Please wait</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="w-10 h-10 rounded-lg bg-purple-500/20 border border-purple-500/40 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Wallet className="w-5 h-5 text-purple-400" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="text-sm font-semibold text-foreground">Connect Wallet</p>
+                    <p className="text-xs text-muted-foreground">MetaMask, Trust, Coinbase</p>
+                  </div>
+                </>
+              )}
+            </button>
 
             {/* Email Sign In */}
             <button

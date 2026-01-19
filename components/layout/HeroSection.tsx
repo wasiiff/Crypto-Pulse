@@ -61,7 +61,7 @@ export default function HeroSection() {
         {/* Main Heading */}
         <motion.div
           variants={itemVariants}
-          className="w-full max-w-[700px] text-center flex justify-center flex-col text-foreground text-[32px] xs:text-[36px] sm:text-[42px] md:text-[48px] lg:text-[56px] font-normal leading-[1.1] sm:leading-[1.15] md:leading-[1.2] font-serif px-2 sm:px-4 md:px-0 relative"
+          className="w-full max-w-[700px] text-center flex justify-center flex-col text-foreground text-[32px] xs:text-[36px] sm:text-[42px] md:text-[48px] lg:text-[56px] font-bold leading-[1.1] sm:leading-[1.15] md:leading-[1.2] px-2 sm:px-4 md:px-0 relative"
         >
           <span className="relative">
             Track Crypto Like Never Before

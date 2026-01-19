@@ -44,7 +44,7 @@ export default function Page() {
               <span className="text-2xl font-bold text-foreground">BLOKK LENS</span>
             </Link>
 
-            <h1 className="text-4xl xl:text-5xl font-normal text-foreground mb-6 leading-tight font-serif">
+            <h1 className="text-4xl xl:text-5xl font-bold text-foreground mb-6 leading-tight">
               Start your crypto
               <br />
               <span className="text-primary">journey today</span>

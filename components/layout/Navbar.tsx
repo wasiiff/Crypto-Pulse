@@ -158,8 +158,8 @@ export default function Navbar() {
             </div>
 
             {/* Mobile Navigation Links */}
-            <div className={`w-full overflow-hidden transition-all duration-300 ${
-                mobileMenuOpen ? 'opacity-100 max-h-[600px]' : 'opacity-0 max-h-0'
+            <div className={`w-full transition-all duration-300 ${
+                mobileMenuOpen ? 'opacity-100 max-h-[600px]' : 'opacity-0 max-h-0 overflow-hidden'
               }`}>
               <div className={`flex flex-col gap-2 backdrop-blur-xl rounded-2xl p-3 border shadow-lg transition-all duration-500 ${
                 isScrolled

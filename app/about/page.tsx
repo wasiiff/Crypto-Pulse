@@ -39,7 +39,7 @@ export default function AboutPage() {
 
             <div className="pt-32 pb-16 flex flex-col justify-start items-center px-4 md:px-8 lg:px-12 w-full">
               <div className="w-full max-w-[937px] flex flex-col justify-center items-center gap-6 mb-12">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif text-center">About Blokklens</h1>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-center">About Blokklens</h1>
                 <p className="text-lg md:text-xl text-muted-foreground text-center max-w-[650px]">
                   Your ultimate cryptocurrency platform. Track markets, get AI-powered trading insights, and launch your own coins — all in one place.
                 </p>
@@ -172,7 +172,7 @@ export default function AboutPage() {
             <div className="self-stretch pt-[9px] overflow-hidden flex flex-col justify-center items-center relative z-10">
               <div className="py-16 sm:py-20 md:py-24 lg:py-32 flex flex-col justify-start items-center px-2 sm:px-4 md:px-8 lg:px-12 w-full">
                 <div className="w-full max-w-[800px] text-center space-y-8">
-                  <h2 className="text-[32px] sm:text-[42px] md:text-[48px] lg:text-[56px] font-normal leading-[1.1] font-serif text-foreground">
+                  <h2 className="text-[32px] sm:text-[42px] md:text-[48px] lg:text-[56px] font-bold leading-[1.1] text-foreground">
                     Meet the Developer
                   </h2>
                   <p className="text-lg md:text-xl text-muted-foreground max-w-[600px] mx-auto leading-relaxed font-medium">

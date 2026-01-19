@@ -65,7 +65,7 @@ export default function FavoritesPage() {
                 className="pt-24 sm:pt-28 md:pt-32 lg:pt-32 pb-8"
               >
                 <div className="mb-8">
-                  <h1 className="text-[32px] sm:text-[42px] md:text-[48px] font-normal mb-3 leading-[1.1] font-serif text-foreground">
+                  <h1 className="text-[32px] sm:text-[42px] md:text-[48px] font-bold mb-3 leading-[1.1] text-foreground">
                     Your Favorites
                   </h1>
                   <p className="text-muted-foreground text-lg">Track your favorite cryptocurrencies</p>

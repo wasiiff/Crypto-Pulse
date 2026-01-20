@@ -1,4 +1,4 @@
-import { streamText, convertToCoreMessages } from 'ai';
+import { streamText } from 'ai';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getCoinDetails, getCoinMarketChart } from '@/services/coingecko';
@@ -83,12 +83,11 @@ export async function POST(req: Request) {
     const result = streamText({
       model: getAIModel(),
       system: enhancedPrompt,
-      messages: convertToCoreMessages(messages),
+      messages: messages,
       temperature: AI_CONFIG.temperature,
-      maxTokens: AI_CONFIG.maxTokens,
     });
 
-    return result.toDataStreamResponse();
+    return result.toTextStreamResponse();
   } catch (error) {
     console.error('Trading assistant error:', error);
     return new Response(

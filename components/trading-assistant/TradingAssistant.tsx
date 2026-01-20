@@ -1,6 +1,5 @@
 "use client";
 
-import { useChat } from '@ai-sdk/react';
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -26,6 +25,12 @@ interface SuggestedPrompt {
   title: string;
   prompt: string;
   category: string;
+}
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
 }
 
 const SUGGESTED_PROMPTS: SuggestedPrompt[] = [
@@ -76,27 +81,16 @@ export default function TradingAssistant({ coinId, coinSymbol }: TradingAssistan
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [inputValue, setInputValue] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const { messages, input, handleInputChange, handleSubmit, isLoading, setInput } = useChat({
-    api: '/api/trading-assistant',
-    body: {
-      sessionId,
-      coinId,
-    },
-    initialMessages: coinId ? [{
+  const [messages, setMessages] = useState<Message[]>(
+    coinId ? [{
       id: 'welcome',
-      role: 'assistant',
+      role: 'assistant' as const,
       content: `Hello! I'm your AI trading assistant. I can help you analyze ${coinSymbol?.toUpperCase() || 'cryptocurrencies'}, understand technical indicators, and make informed trading decisions. What would you like to know?`,
-    }] : [],
-  });
-
-  // Sync input with local state
-  useEffect(() => {
-    if (input !== undefined) {
-      setInputValue(input);
-    }
-  }, [input]);
+    }] : []
+  );
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -108,9 +102,6 @@ export default function TradingAssistant({ coinId, coinSymbol }: TradingAssistan
 
   const handleSuggestedPrompt = (prompt: string) => {
     setInputValue(prompt);
-    if (setInput) {
-      setInput(prompt);
-    }
   };
 
   const handleCopy = async (content: string, index: number) => {
@@ -120,10 +111,86 @@ export default function TradingAssistant({ coinId, coinSymbol }: TradingAssistan
   };
 
   const handleInputChangeLocal = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setInputValue(value);
-    if (handleInputChange) {
-      handleInputChange(e);
+    setInputValue(e.target.value);
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!inputValue.trim() || isLoading) return;
+    
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      content: inputValue,
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue('');
+    setIsLoading(true);
+
+    try {
+      abortControllerRef.current = new AbortController();
+      
+      const response = await fetch('/api/trading-assistant', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [...messages, userMessage],
+          sessionId,
+          coinId,
+        }),
+        signal: abortControllerRef.current.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let assistantMessage = '';
+      const assistantId = `assistant-${Date.now()}`;
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          const chunk = decoder.decode(value);
+          assistantMessage += chunk;
+          
+          setMessages(prev => {
+            const existing = prev.find(m => m.id === assistantId);
+            if (existing) {
+              return prev.map(m => 
+                m.id === assistantId 
+                  ? { ...m, content: assistantMessage }
+                  : m
+              );
+            } else {
+              return [...prev, {
+                id: assistantId,
+                role: 'assistant' as const,
+                content: assistantMessage,
+              }];
+            }
+          });
+        }
+      }
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error('Error:', error);
+        setMessages(prev => [...prev, {
+          id: `error-${Date.now()}`,
+          role: 'assistant',
+          content: 'Sorry, I encountered an error. Please try again.',
+        }]);
+      }
+    } finally {
+      setIsLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -268,7 +335,7 @@ export default function TradingAssistant({ coinId, coinSymbol }: TradingAssistan
 
       {/* Input Area */}
       <div className="border-t bg-card/50 backdrop-blur-sm p-4">
-        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
+        <form onSubmit={handleFormSubmit} className="max-w-4xl mx-auto">
           <div className="flex gap-2">
             <Input
               value={inputValue}

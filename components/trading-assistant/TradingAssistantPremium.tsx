@@ -1,6 +1,5 @@
 "use client";
 
-import { useChat } from '@ai-sdk/react';
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +27,12 @@ interface SuggestedPrompt {
   prompt: string;
   category: string;
   gradient: string;
+}
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
 }
 
 const SUGGESTED_PROMPTS: SuggestedPrompt[] = [
@@ -84,30 +89,20 @@ export default function TradingAssistantPremium({ coinId, coinSymbol }: TradingA
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [inputValue, setInputValue] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const { messages, input, handleInputChange, handleSubmit, isLoading, setInput } = useChat({
-    api: '/api/trading-assistant',
-    body: {
-      sessionId,
-      coinId,
-    },
-    initialMessages: coinId ? [{
+  const [messages, setMessages] = useState<Message[]>(
+    coinId ? [{
       id: 'welcome',
-      role: 'assistant',
+      role: 'assistant' as const,
       content: `Hello! I'm your AI trading assistant. I can help you analyze ${coinSymbol?.toUpperCase() || 'cryptocurrencies'}, understand technical indicators, and make informed trading decisions. What would you like to know?`,
     }] : [{
       id: 'welcome',
-      role: 'assistant',
+      role: 'assistant' as const,
       content: `Welcome to your AI Trading Assistant! I'm here to help you navigate the crypto markets with data-driven insights and technical analysis. Ask me anything about trading strategies, market trends, or specific cryptocurrencies.`,
-    }],
-  });
-
-  useEffect(() => {
-    if (input !== undefined) {
-      setInputValue(input);
-    }
-  }, [input]);
+    }]
+  );
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -119,9 +114,6 @@ export default function TradingAssistantPremium({ coinId, coinSymbol }: TradingA
 
   const handleSuggestedPrompt = (prompt: string) => {
     setInputValue(prompt);
-    if (setInput) {
-      setInput(prompt);
-    }
   };
 
   const handleCopy = async (content: string, index: number) => {
@@ -131,10 +123,86 @@ export default function TradingAssistantPremium({ coinId, coinSymbol }: TradingA
   };
 
   const handleInputChangeLocal = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setInputValue(value);
-    if (handleInputChange) {
-      handleInputChange(e);
+    setInputValue(e.target.value);
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!inputValue.trim() || isLoading) return;
+    
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      content: inputValue,
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue('');
+    setIsLoading(true);
+
+    try {
+      abortControllerRef.current = new AbortController();
+      
+      const response = await fetch('/api/trading-assistant', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [...messages, userMessage],
+          sessionId,
+          coinId,
+        }),
+        signal: abortControllerRef.current.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let assistantMessage = '';
+      const assistantId = `assistant-${Date.now()}`;
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          const chunk = decoder.decode(value);
+          assistantMessage += chunk;
+          
+          setMessages(prev => {
+            const existing = prev.find(m => m.id === assistantId);
+            if (existing) {
+              return prev.map(m => 
+                m.id === assistantId 
+                  ? { ...m, content: assistantMessage }
+                  : m
+              );
+            } else {
+              return [...prev, {
+                id: assistantId,
+                role: 'assistant' as const,
+                content: assistantMessage,
+              }];
+            }
+          });
+        }
+      }
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error('Error:', error);
+        setMessages(prev => [...prev, {
+          id: `error-${Date.now()}`,
+          role: 'assistant',
+          content: 'Sorry, I encountered an error. Please try again.',
+        }]);
+      }
+    } finally {
+      setIsLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -310,7 +378,7 @@ export default function TradingAssistantPremium({ coinId, coinSymbol }: TradingA
       <div className="sticky bottom-0 border-t border-dashed border-border bg-background">
         <div className="relative mx-auto max-w-7xl border-r border-l border-dashed border-border px-4 sm:px-8 py-6 overflow-hidden">
           <BorderBeam borderWidth={1} reverse className="from-transparent via-blue-500 to-transparent" />
-          <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
+          <form onSubmit={handleFormSubmit} className="max-w-4xl mx-auto">
             <div className="relative flex gap-2 items-center bg-muted/30 border border-border rounded-2xl p-2 backdrop-blur-sm">
               <Input
                 value={inputValue}

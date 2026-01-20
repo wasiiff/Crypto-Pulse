@@ -7,6 +7,7 @@ import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { queryClient } from "@/lib/react-query";
 import { ThemeProvider } from "@/components/theme-provider";
 import { config } from '@/lib/wagmi';
+import SmoothScrollProvider from "@/components/providers/SmoothScrollProvider";
 import '@rainbow-me/rainbowkit/styles.css';
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -16,7 +17,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <QueryClientProvider client={queryClient}>
           <RainbowKitProvider>
             <ThemeProvider defaultTheme="system" storageKey="blokk-lens-theme">
-              {children}
+              <SmoothScrollProvider>
+                {children}
+              </SmoothScrollProvider>
             </ThemeProvider>
           </RainbowKitProvider>
         </QueryClientProvider>

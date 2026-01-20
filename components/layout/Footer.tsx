@@ -1,117 +1,186 @@
 "use client"
 
 import { Logo } from "@/components/ui/logo"
-import { Github, Twitter, Mail, ExternalLink } from "lucide-react"
+import { Github, Mail, ExternalLink, Heart } from "lucide-react"
 import Link from "next/link"
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
 
+  const footerLinks = {
+    product: [
+      { label: "Markets", href: "/" },
+      { label: "Converter", href: "/convert" },
+      { label: "Watchlist", href: "/favorites" },
+      { label: "About", href: "/about" },
+    ],
+    resources: [
+      { label: "Documentation", href: "https://docs.coingecko.com/", external: true },
+      { label: "API Access", href: "https://www.coingecko.com/api", external: true },
+      { label: "GitHub Repo", href: "https://github.com/wasiiff/blokk-lens", external: true },
+      { label: "Shadcn/ui", href: "https://ui.shadcn.com/", external: true },
+    ],
+    company: [
+      { label: "About Developer", href: "/about" },
+      { label: "Contact", href: "mailto:wasifbinnasir@gmail.com" },
+      { label: "Privacy Policy", href: "#" },
+      { label: "Terms of Service", href: "#" },
+    ],
+  }
+
   return (
-    <footer className="relative bg-background overflow-x-hidden">
-      {/* Footer background pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="footer-pattern" width="80" height="80" patternUnits="userSpaceOnUse">
-              <rect width="80" height="80" fill="none" stroke="hsl(var(--border))" strokeWidth="0.5" opacity="0.3"/>
-              <path d="M0,40 L40,0 M40,80 L80,40" stroke="hsl(var(--border))" strokeWidth="0.3" opacity="0.2"/>
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#footer-pattern)" />
-        </svg>
-      </div>
-
-      <div className="relative py-16 sm:py-20 md:py-24 px-2 sm:px-4 md:px-8 lg:px-12 w-full">
-        {/* Top separator line */}
-        <div className="w-full border-t border-dashed border-border/60 mb-16"></div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 lg:gap-16">
-          <div className="md:col-span-2">
-            <div className="flex items-center space-x-3 mb-6">
-              <Logo />
-              <span className="font-bold text-2xl text-foreground">BLOKK LENS</span>
+    <footer className="relative bg-background overflow-hidden border-t border-border/50">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Main Footer Content */}
+        <div className="py-12 lg:py-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-12">
+            {/* Brand Section */}
+            <div className="lg:col-span-5">
+              <div className="flex items-center space-x-3 mb-4">
+                <Logo />
+                <span className="font-bold text-2xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                  BLOKK LENS
+                </span>
+              </div>
+              <p className="text-muted-foreground max-w-sm leading-relaxed mb-6">
+                Your gateway to real-time cryptocurrency insights. Track markets, 
+                analyze trends, and stay ahead with professional-grade analytics.
+              </p>
+              
+              {/* Social Links */}
+              <div className="flex items-center gap-3">
+                <a 
+                  href="https://github.com/wasiiff/blokklens" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative w-10 h-10 rounded-lg bg-muted/50 hover:bg-muted border border-border/50 hover:border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-all duration-200"
+                  aria-label="GitHub"
+                >
+                  <Github className="w-5 h-5" />
+                </a>
+                
+                {/* X (Twitter) Logo - Latest Design */}
+                <a 
+                  href="https://x.com/wasif_bin_nasir" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative w-10 h-10 rounded-lg bg-muted/50 hover:bg-muted border border-border/50 hover:border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-all duration-200"
+                  aria-label="X (Twitter)"
+                >
+                  <svg 
+                    viewBox="0 0 24 24" 
+                    className="w-4 h-4 fill-current"
+                    aria-hidden="true"
+                  >
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                </a>
+                
+                <a 
+                  href="mailto:wasifbinnasir@gmail.com" 
+                  className="group relative w-10 h-10 rounded-lg bg-muted/50 hover:bg-muted border border-border/50 hover:border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-all duration-200"
+                  aria-label="Email"
+                >
+                  <Mail className="w-5 h-5" />
+                </a>
+              </div>
             </div>
-            <p className="text-muted-foreground max-w-md leading-relaxed text-base">
-              Real-time cryptocurrency tracking platform. Stay updated with the latest 
-              market trends, prices, and insights. Built for traders, by traders.
-            </p>
-            <div className="flex items-center gap-3 mt-6">
-              <a 
-                href="https://github.com/wasiiff" 
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-xl bg-background/60 backdrop-blur-md border border-border/30 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background/80 hover:border-border/50 transition-all duration-200"
-              >
-                <Github className="w-5 h-5" />
-              </a>
-              <a 
-                href="https://twitter.com" 
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-xl bg-background/60 backdrop-blur-md border border-border/30 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background/80 hover:border-border/50 transition-all duration-200"
-              >
-                <Twitter className="w-5 h-5" />
-              </a>
-              <a 
-                href="mailto:contact@blokklens.com" 
-                className="w-10 h-10 rounded-xl bg-background/60 backdrop-blur-md border border-border/30 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background/80 hover:border-border/50 transition-all duration-200"
-              >
-                <Mail className="w-5 h-5" />
-              </a>
-            </div>
-          </div>
 
-          <div>
-            <h3 className="font-semibold mb-6 text-lg text-foreground">Product</h3>
-            <div className="space-y-4">
-              <Link href="/" className="block text-muted-foreground hover:text-foreground transition-colors text-sm">
-                Markets
-              </Link>
-              <Link href="/favorites" className="block text-muted-foreground hover:text-foreground transition-colors text-sm">
-                Watchlist
-              </Link>
-              <Link href="/about" className="block text-muted-foreground hover:text-foreground transition-colors text-sm">
-                About
-              </Link>
-              <a href="https://www.coingecko.com/api" target="_blank" rel="noopener noreferrer" className="block text-muted-foreground hover:text-foreground transition-colors text-sm">
-                API Access
-              </a>
-            </div>
-          </div>
+            {/* Links Sections */}
+            <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-8">
+              {/* Product */}
+              <div>
+                <h3 className="font-semibold text-foreground mb-4 text-sm uppercase tracking-wider">
+                  Product
+                </h3>
+                <ul className="space-y-3">
+                  {footerLinks.product.map((link) => (
+                    <li key={link.label}>
+                      <Link 
+                        href={link.href}
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1 group"
+                      >
+                        {link.label}
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-          <div>
-            <h3 className="font-semibold mb-6 text-lg text-foreground">Resources</h3>
-            <div className="space-y-4">
-              <a href="https://docs.coingecko.com/" target="_blank" rel="noopener noreferrer" className="block text-muted-foreground hover:text-foreground transition-colors text-sm">
-                Documentation
-              </a>
-              <a href="https://ui.shadcn.com/" target="_blank" rel="noopener noreferrer" className="block text-muted-foreground hover:text-foreground transition-colors text-sm">
-                Shadcn/ui
-              </a>
-              <a href="https://github.com/wasiiff" target="_blank" rel="noopener noreferrer" className="block text-muted-foreground hover:text-foreground transition-colors text-sm">
-                GitHub
-              </a>
-              <Link href="/about" className="block text-muted-foreground hover:text-foreground transition-colors text-sm">
-                About Developer
-              </Link>
+              {/* Resources */}
+              <div>
+                <h3 className="font-semibold text-foreground mb-4 text-sm uppercase tracking-wider">
+                  Resources
+                </h3>
+                <ul className="space-y-3">
+                  {footerLinks.resources.map((link) => (
+                    <li key={link.label}>
+                      {link.external ? (
+                        <a 
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1 group"
+                        >
+                          {link.label}
+                          <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </a>
+                      ) : (
+                        <Link 
+                          href={link.href}
+                          className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1 group"
+                        >
+                          {link.label}
+                          <span className="opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                        </Link>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Company */}
+              <div>
+                <h3 className="font-semibold text-foreground mb-4 text-sm uppercase tracking-wider">
+                  Company
+                </h3>
+                <ul className="space-y-3">
+                  {footerLinks.company.map((link) => (
+                    <li key={link.label}>
+                      <Link 
+                        href={link.href}
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1 group"
+                      >
+                        {link.label}
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom separator line */}
-        <div className="w-full border-t border-dashed border-border/60 mt-16 pt-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-muted-foreground text-sm">
-              © {currentYear} BLOKK LENS. All rights reserved.
-            </p>
+        {/* Bottom Bar */}
+        <div className="border-t border-border/50 py-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>© {currentYear} BLOKK LENS.</span>
+              <span className="hidden sm:inline">•</span>
+              <span className="flex items-center gap-1">
+                Made with <Heart className="w-3 h-3 fill-red-500 text-red-500" /> by Wasif
+              </span>
+            </div>
+            
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span>Powered by</span>
               <a
                 href="https://www.coingecko.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
+                className="text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1 font-medium"
               >
                 CoinGecko API
                 <ExternalLink className="w-3 h-3" />

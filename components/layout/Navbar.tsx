@@ -16,8 +16,10 @@ export default function Navbar() {
   const [showDesktopDropdown, setShowDesktopDropdown] = useState(false)
   const [showMobileDropdown, setShowMobileDropdown] = useState(false)
   const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(null)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50)
     }
@@ -41,7 +43,7 @@ export default function Navbar() {
       available: false,
       comingSoon: true
     },
-    ...(session ? [{
+    ...(mounted && session ? [{
       name: "Watchlist",
       href: "/favorites",
       icon: Star,
@@ -49,6 +51,56 @@ export default function Navbar() {
       available: true
     }] : [])
   ]
+
+  // Prevent hydration mismatch by rendering consistent initial state
+  if (!mounted) {
+    return (
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-transparent">
+        <div className="relative flex flex-col justify-start items-center w-full">
+          <div className="self-stretch flex flex-col items-center relative z-10 pt-6 pb-3">
+            <div className="hidden lg:flex items-center justify-center w-full px-4 sm:px-6 md:px-8 lg:px-12">
+              <div className="flex items-center justify-between w-full max-w-6xl">
+                <div className="flex items-center">
+                  <Link href="/">
+                    <div className="flex items-center space-x-3 px-4 py-2 rounded-xl backdrop-blur-md bg-background/40 border border-border/20 cursor-pointer">
+                      <Logo />
+                      <div className="flex flex-col">
+                        <span className="font-bold text-lg text-foreground leading-none">BLOKK LENs</span>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+                <div className="flex items-center space-x-2 px-6 py-3 rounded-xl backdrop-blur-md bg-background/40 border border-border/20">
+                  <div className="h-8 w-20 bg-muted/20 rounded animate-pulse" />
+                  <div className="h-8 w-20 bg-muted/20 rounded animate-pulse" />
+                  <div className="h-8 w-20 bg-muted/20 rounded animate-pulse" />
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="h-10 w-24 bg-muted/20 rounded-xl animate-pulse" />
+                  <div className="h-10 w-10 bg-muted/20 rounded-xl animate-pulse" />
+                  <div className="h-10 w-24 bg-muted/20 rounded-xl animate-pulse" />
+                </div>
+              </div>
+            </div>
+            <div className="lg:hidden flex flex-col items-center w-full space-y-3 px-4">
+              <div className="flex items-center justify-between w-full">
+                <Link href="/">
+                  <div className="flex items-center space-x-2 backdrop-blur-xl rounded-2xl px-3 py-2 border shadow-lg bg-background/40 border-border/20 cursor-pointer">
+                    <Logo />
+                    <span className="font-bold text-base text-foreground">BLOKK LENS</span>
+                  </div>
+                </Link>
+                <div className="flex items-center gap-2">
+                  <div className="h-10 w-10 bg-muted/20 rounded-2xl animate-pulse" />
+                  <div className="h-10 w-10 bg-muted/20 rounded-2xl animate-pulse" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    )
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-transparent">

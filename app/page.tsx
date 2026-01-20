@@ -80,6 +80,7 @@ export default function Home() {
 
               {/* Main Content - Market Overview */}
               <motion.section
+                id="market"
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, margin: "-50px" }}

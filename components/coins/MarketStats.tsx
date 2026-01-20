@@ -40,9 +40,11 @@ export default function MarketStats() {
 
   // Calculate average change and top gainer from coins
   const avgChange = (coins?.reduce((acc, coin) => acc + (coin.price_change_percentage_24h || 0), 0) || 0) / (coins?.length || 1)
-  const topGainer = coins?.reduce((max, coin) => 
-    (coin.price_change_percentage_24h || 0) > (max.price_change_percentage_24h || 0) ? coin : max
-  , coins?.[0]) || { price_change_percentage_24h: 0, symbol: "N/A" }
+  const topGainer = coins && coins.length > 0 
+    ? coins.reduce((max, coin) => 
+        (coin.price_change_percentage_24h || 0) > (max.price_change_percentage_24h || 0) ? coin : max
+      , coins[0])
+    : null
 
   const stats = [
     {
@@ -93,7 +95,7 @@ export default function MarketStats() {
         const colors = colorClasses[stat.color as keyof typeof colorClasses]
         const isTopGainer = stat.label === "Top Gainer"
         
-        if (isTopGainer) {
+        if (isTopGainer && topGainer) {
           // Special card for Top Gainer with animated border
           return (
             <motion.button
@@ -137,7 +139,7 @@ export default function MarketStats() {
                       <stat.icon className="w-6 h-6 text-foreground" />
                     </div>
                     {/* Coin Image next to icon */}
-                    {topGainer?.image && (
+                    {topGainer.image && (
                       <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/30 shadow-sm">
                         <Image
                           src={topGainer.image}

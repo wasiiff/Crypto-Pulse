@@ -30,19 +30,23 @@ export default function Navbar() {
       name: "Convert",
       href: "/convert",
       icon: ArrowDownUp,
-      description: "Convert between cryptocurrencies"
+      description: "Convert between cryptocurrencies",
+      available: true
     },
     {
       name: "AI Assistant",
-      href: "/trading-assistant",
+      href: "#",
       icon: Bot,
-      description: "AI-powered trading insights"
+      description: "AI-powered trading insights",
+      available: false,
+      comingSoon: true
     },
     ...(session ? [{
       name: "Watchlist",
       href: "/favorites",
       icon: Star,
-      description: "Track your favorite coins"
+      description: "Track your favorite coins",
+      available: true
     }] : [])
   ]
 
@@ -126,6 +130,24 @@ export default function Navbar() {
                       <div className="space-y-1">
                         {toolsItems.map((item) => {
                           const Icon = item.icon
+                          
+                          if (item.comingSoon) {
+                            return (
+                              <div key={item.name} className="group/item flex items-start gap-3 p-3.5 rounded-xl bg-muted/30 cursor-not-allowed opacity-60">
+                                <div className="p-2.5 rounded-xl bg-muted shrink-0">
+                                  <Icon className="w-4.5 h-4.5 text-foreground" />
+                                </div>
+                                <div className="flex-1 min-w-0 pt-0.5">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-semibold text-sm text-foreground">{item.name}</span>
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium">Coming Soon</span>
+                                  </div>
+                                  <div className="text-xs text-muted-foreground mt-1 leading-relaxed">{item.description}</div>
+                                </div>
+                              </div>
+                            )
+                          }
+                          
                           return (
                             <Link key={item.name} href={item.href}>
                               <div className="group/item flex items-start gap-3 p-3.5 rounded-xl hover:bg-accent/50 transition-all duration-200 cursor-pointer hover:shadow-sm">
@@ -262,6 +284,20 @@ export default function Navbar() {
                     <div className="mt-2 space-y-1 pl-2">
                       {toolsItems.map((item) => {
                         const Icon = item.icon
+                        
+                        if (item.comingSoon) {
+                          return (
+                            <div
+                              key={item.name}
+                              className="flex items-center gap-3 px-4 py-2 text-sm rounded-xl bg-muted/30 cursor-not-allowed opacity-60"
+                            >
+                              <Icon className="w-4 h-4 text-primary" />
+                              <span className="text-muted-foreground">{item.name}</span>
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium ml-auto">Soon</span>
+                            </div>
+                          )
+                        }
+                        
                         return (
                           <Link key={item.name} href={item.href}>
                             <div

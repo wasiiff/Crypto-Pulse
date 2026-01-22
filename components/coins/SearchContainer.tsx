@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useCallback, memo } from "react"
 import { useDebounce } from "@/lib/hooks/useDebounce"
 import EnhancedSearchInput from "@/components/ui/enhanced-search-input"
 import { cn } from "@/lib/utils"
@@ -15,7 +15,7 @@ interface SearchContainerProps {
   isLoading?: boolean
 }
 
-export default function SearchContainer({
+const SearchContainer = memo(function SearchContainer({
   onSearchChange,
   placeholder = "Search cryptocurrencies...",
   className = "",
@@ -31,6 +31,10 @@ export default function SearchContainer({
     onSearchChange(debouncedSearchQuery)
   }, [debouncedSearchQuery, onSearchChange])
 
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value)
+  }, [])
+
   return (
     <div className={cn(
       "w-full max-w-2xl mx-auto",
@@ -40,7 +44,7 @@ export default function SearchContainer({
       <div className="space-y-3">
         <EnhancedSearchInput
           value={searchQuery}
-          onChange={setSearchQuery}
+          onChange={handleSearchChange}
           placeholder={placeholder}
           size={size}
           isLoading={isLoading}
@@ -69,4 +73,6 @@ export default function SearchContainer({
       </div>
     </div>
   )
-}
+})
+
+export default SearchContainer

@@ -5,6 +5,8 @@ import { TrendingUp, TrendingDown, Star } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useSession } from "next-auth/react"
+import { memo, useCallback } from "react"
+import Image from "next/image"
 
 interface CoinCardProps {
   coin: MarketCoin
@@ -12,19 +14,41 @@ interface CoinCardProps {
   onToggleFavorite?: (coinId: string) => void
 }
 
-export default function CoinCard({ coin, isFavorite, onToggleFavorite }: CoinCardProps) {
+const CoinCard = memo(function CoinCard({ coin, isFavorite, onToggleFavorite }: CoinCardProps) {
   const { data: session } = useSession()
   const isPositive = (coin.price_change_percentage_24h ?? 0) >= 0
+
+  const handleFavoriteClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (onToggleFavorite) {
+      onToggleFavorite(coin.id)
+    }
+  }, [coin.id, onToggleFavorite])
+
+  const formattedPrice = coin.current_price.toLocaleString(undefined, { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  })
+
+  const formattedMarketCap = coin.market_cap 
+    ? `${(coin.market_cap / 1e9).toFixed(2)}B`
+    : null
+
+  const formattedPriceChange = Math.abs(coin.price_change_percentage_24h ?? 0).toFixed(2)
 
   return (
     <div className="glass-card-light rounded-xl p-5 border border-border transition-all duration-300 group">
       <div className="flex items-start justify-between mb-4">
         <Link href={`/coins/${coin.id}`} className="flex items-center gap-3 flex-1">
-          <div className="relative">
-            <img
+          <div className="relative w-12 h-12">
+            <Image
               src={coin.image}
               alt={coin.name}
-              className="relative w-12 h-12 rounded-full ring-2 ring-border group-hover:ring-primary/40 transition-all duration-300"
+              width={48}
+              height={48}
+              className="rounded-full ring-2 ring-border group-hover:ring-primary/40 transition-all duration-300"
+              loading="lazy"
             />
           </div>
           <div>
@@ -39,8 +63,9 @@ export default function CoinCard({ coin, isFavorite, onToggleFavorite }: CoinCar
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onToggleFavorite(coin.id)}
+            onClick={handleFavoriteClick}
             className="h-9 w-9 p-0 rounded-lg"
+            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
           >
             <Star
               className={`w-4 h-4 transition-all duration-300 ${
@@ -57,7 +82,7 @@ export default function CoinCard({ coin, isFavorite, onToggleFavorite }: CoinCar
         <div className="space-y-3">
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold card-text">
-              ${coin.current_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ${formattedPrice}
             </span>
           </div>
 
@@ -74,7 +99,7 @@ export default function CoinCard({ coin, isFavorite, onToggleFavorite }: CoinCar
               ) : (
                 <TrendingDown className="w-3.5 h-3.5" />
               )}
-              {Math.abs(coin.price_change_percentage_24h ?? 0).toFixed(2)}%
+              {formattedPriceChange}%
             </div>
 
             {coin.market_cap_rank && (
@@ -84,12 +109,12 @@ export default function CoinCard({ coin, isFavorite, onToggleFavorite }: CoinCar
             )}
           </div>
 
-          {coin.market_cap && (
+          {formattedMarketCap && (
             <div className="pt-3 border-t border-border">
               <div className="flex items-center justify-between">
                 <span className="text-xs card-text-muted">Market Cap</span>
                 <span className="text-sm font-medium card-text">
-                  ${(coin.market_cap / 1e9).toFixed(2)}B
+                  ${formattedMarketCap}
                 </span>
               </div>
             </div>
@@ -98,4 +123,6 @@ export default function CoinCard({ coin, isFavorite, onToggleFavorite }: CoinCar
       </Link>
     </div>
   )
-}
+})
+
+export default CoinCard

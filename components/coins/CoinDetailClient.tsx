@@ -9,7 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { CircuitDecoration } from "@/components/ui/decorative-svg"
 import { CoinDetailSkeleton } from "@/components/ui/skeleton"
 import { useSession } from "next-auth/react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useMemo, memo } from "react"
 import { useRouter } from "next/navigation"
 import CoinAnalysisChat from "@/components/trading-assistant/CoinAnalysisChat"
 import PriceChart from "@/components/trading-assistant/PriceChart"
@@ -18,7 +18,7 @@ interface CoinDetailClientProps {
   coinId: string
 }
 
-export default function CoinDetailClient({ coinId }: CoinDetailClientProps) {
+const CoinDetailClient = memo(function CoinDetailClient({ coinId }: CoinDetailClientProps) {
   const { data: session } = useSession()
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -27,12 +27,14 @@ export default function CoinDetailClient({ coinId }: CoinDetailClientProps) {
   const { data: coin, isLoading } = useQuery({
     queryKey: ["coin", coinId],
     queryFn: () => fetchCoinDetails(coinId),
+    staleTime: 60000, // 1 minute
   })
 
   const { data: favorites } = useQuery({
     queryKey: ["favorites"],
     queryFn: fetchFavorites,
     enabled: !!session,
+    staleTime: 60000, // 1 minute
   })
 
   useEffect(() => {
@@ -59,7 +61,7 @@ export default function CoinDetailClient({ coinId }: CoinDetailClientProps) {
     },
   })
 
-  const handleToggleFavorite = () => {
+  const handleToggleFavorite = useCallback(() => {
     if (!session) {
       router.push("/auth/login")
       return
@@ -70,17 +72,68 @@ export default function CoinDetailClient({ coinId }: CoinDetailClientProps) {
     } else {
       addMutation.mutate(coinId)
     }
-  }
+  }, [session, isFavorite, coinId, router, addMutation, removeMutation])
+
+  // Memoized values
+  const currentPrice = useMemo(() => 
+    coin?.market_data?.current_price?.usd ?? 0,
+    [coin]
+  )
+
+  const priceChange = useMemo(() => 
+    coin?.market_data?.price_change_percentage_24h ?? 0,
+    [coin]
+  )
+
+  const isPositive = useMemo(() => 
+    priceChange >= 0,
+    [priceChange]
+  )
+
+  const marketCap = useMemo(() => 
+    ((coin?.market_data?.market_cap?.usd ?? 0) / 1e9).toFixed(2),
+    [coin]
+  )
+
+  const circulatingSupply = useMemo(() => 
+    (coin?.market_data?.circulating_supply ?? 0).toLocaleString(undefined, {
+      maximumFractionDigits: 0,
+    }),
+    [coin]
+  )
+
+  const totalSupply = useMemo(() => 
+    coin?.market_data?.total_supply?.toLocaleString(undefined, {
+      maximumFractionDigits: 0,
+    }),
+    [coin]
+  )
+
+  const high24h = useMemo(() => 
+    (coin?.market_data?.high_24h?.usd ?? 0).toLocaleString(),
+    [coin]
+  )
+
+  const low24h = useMemo(() => 
+    (coin?.market_data?.low_24h?.usd ?? 0).toLocaleString(),
+    [coin]
+  )
+
+  const ath = useMemo(() => 
+    (coin?.market_data?.ath?.usd ?? 0).toLocaleString(),
+    [coin]
+  )
+
+  const description = useMemo(() => {
+    if (!coin?.description?.en) return null
+    return coin.description.en.split(". ").slice(0, 3).join(". ") + "."
+  }, [coin])
 
   if (isLoading) {
     return <CoinDetailSkeleton />
   }
 
   if (!coin) return null
-
-  const currentPrice = coin.market_data?.current_price?.usd ?? 0
-  const priceChange = coin.market_data?.price_change_percentage_24h ?? 0
-  const isPositive = priceChange >= 0
 
   return (
     <div className="relative max-w-6xl mx-auto px-4 py-8">
@@ -104,6 +157,7 @@ export default function CoinDetailClient({ coinId }: CoinDetailClientProps) {
                   src={coin.image?.large}
                   alt={coin.name}
                   className="w-16 h-16 rounded-full"
+                  loading="lazy"
                 />
                 <div className="flex-1">
                   <CardTitle className="text-3xl card-text mb-1">
@@ -170,24 +224,20 @@ export default function CoinDetailClient({ coinId }: CoinDetailClientProps) {
                   <div>
                     <p className="text-sm card-text-muted mb-1">Market Cap</p>
                     <p className="text-lg font-semibold card-text">
-                      ${((coin.market_data?.market_cap?.usd ?? 0) / 1e9).toFixed(2)}B
+                      ${marketCap}B
                     </p>
                   </div>
                   <div>
                     <p className="text-sm card-text-muted mb-1">Circulating Supply</p>
                     <p className="text-lg font-semibold card-text">
-                      {(coin.market_data?.circulating_supply ?? 0).toLocaleString(undefined, {
-                        maximumFractionDigits: 0,
-                      })}
+                      {circulatingSupply}
                     </p>
                   </div>
-                  {coin.market_data?.total_supply && (
+                  {totalSupply && (
                     <div>
                       <p className="text-sm card-text-muted mb-1">Total Supply</p>
                       <p className="text-lg font-semibold card-text">
-                        {coin.market_data.total_supply.toLocaleString(undefined, {
-                          maximumFractionDigits: 0,
-                        })}
+                        {totalSupply}
                       </p>
                     </div>
                   )}
@@ -198,7 +248,7 @@ export default function CoinDetailClient({ coinId }: CoinDetailClientProps) {
 
           <PriceChart coinId={coinId} days={30} />
 
-          {coin.description?.en && (
+          {description && (
             <Card className="glass-card-light border border-border">
               <CardHeader>
                 <CardTitle className="card-text">About {coin.name}</CardTitle>
@@ -206,9 +256,7 @@ export default function CoinDetailClient({ coinId }: CoinDetailClientProps) {
               <CardContent>
                 <div
                   className="card-text prose prose-invert max-w-none"
-                  dangerouslySetInnerHTML={{
-                    __html: coin.description.en.split(". ").slice(0, 3).join(". ") + ".",
-                  }}
+                  dangerouslySetInnerHTML={{ __html: description }}
                 />
               </CardContent>
             </Card>
@@ -254,19 +302,19 @@ export default function CoinDetailClient({ coinId }: CoinDetailClientProps) {
               <div className="flex justify-between items-center">
                 <span className="card-text-muted text-sm">24h High</span>
                 <span className="card-text font-medium">
-                  ${(coin.market_data?.high_24h?.usd ?? 0).toLocaleString()}
+                  ${high24h}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="card-text-muted text-sm">24h Low</span>
                 <span className="card-text font-medium">
-                  ${(coin.market_data?.low_24h?.usd ?? 0).toLocaleString()}
+                  ${low24h}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="card-text-muted text-sm">All-Time High</span>
                 <span className="card-text font-medium">
-                  ${(coin.market_data?.ath?.usd ?? 0).toLocaleString()}
+                  ${ath}
                 </span>
               </div>
             </CardContent>
@@ -275,4 +323,6 @@ export default function CoinDetailClient({ coinId }: CoinDetailClientProps) {
       </div>
     </div>
   )
-}
+})
+
+export default CoinDetailClient

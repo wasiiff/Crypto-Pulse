@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion"
 import { ArrowRight, TrendingUp } from "lucide-react"
+import { memo, useCallback } from "react"
+import Image from "next/image"
 
 interface PopularPairsProps {
   onPairSelect: (from: any, to: any) => void
@@ -34,7 +36,68 @@ const popularPairs = [
   },
 ]
 
-export default function PopularPairs({ onPairSelect }: PopularPairsProps) {
+interface PairCardProps {
+  pair: typeof popularPairs[0]
+  index: number
+  onSelect: (from: any, to: any) => void
+}
+
+const PairCard = memo(function PairCard({ pair, index, onSelect }: PairCardProps) {
+  const handleClick = useCallback(() => {
+    onSelect(pair.from, pair.to)
+  }, [pair, onSelect])
+
+  return (
+    <motion.button
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      onClick={handleClick}
+      className="group relative p-4 rounded-xl bg-muted/30 hover:bg-muted/50 border border-border/30 hover:border-border/50 transition-all hover:scale-105"
+    >
+      {/* Hover glow */}
+      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity" />
+      
+      <div className="relative flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center -space-x-2">
+            <div className="w-8 h-8 rounded-full bg-background border-2 border-background overflow-hidden relative">
+              <Image
+                src={pair.from.image}
+                alt={pair.from.name}
+                fill
+                className="object-cover"
+                sizes="32px"
+                loading="lazy"
+              />
+            </div>
+            <div className="w-8 h-8 rounded-full bg-background border-2 border-background overflow-hidden relative">
+              <Image
+                src={pair.to.image}
+                alt={pair.to.name}
+                fill
+                className="object-cover"
+                sizes="32px"
+                loading="lazy"
+              />
+            </div>
+          </div>
+          <div className="text-left">
+            <p className="text-sm font-semibold text-foreground">
+              {pair.from.symbol.toUpperCase()}/{pair.to.symbol.toUpperCase()}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {pair.from.name} to {pair.to.name}
+            </p>
+          </div>
+        </div>
+        <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+      </div>
+    </motion.button>
+  )
+})
+
+const PopularPairs = memo(function PopularPairs({ onPairSelect }: PopularPairsProps) {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex items-center gap-2 mb-6">
@@ -46,47 +109,12 @@ export default function PopularPairs({ onPairSelect }: PopularPairsProps) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {popularPairs.map((pair, index) => (
-          <motion.button
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-            onClick={() => onPairSelect(pair.from, pair.to)}
-            className="group relative p-4 rounded-xl bg-muted/30 hover:bg-muted/50 border border-border/30 hover:border-border/50 transition-all hover:scale-105"
-          >
-            {/* Hover glow */}
-            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity" />
-            
-            <div className="relative flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center -space-x-2">
-                  <div className="w-8 h-8 rounded-full bg-background border-2 border-background overflow-hidden">
-                    <img
-                      src={pair.from.image}
-                      alt={pair.from.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-background border-2 border-background overflow-hidden">
-                    <img
-                      src={pair.to.image}
-                      alt={pair.to.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-semibold text-foreground">
-                    {pair.from.symbol.toUpperCase()}/{pair.to.symbol.toUpperCase()}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {pair.from.name} to {pair.to.name}
-                  </p>
-                </div>
-              </div>
-              <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-            </div>
-          </motion.button>
+          <PairCard
+            key={`${pair.from.id}-${pair.to.id}`}
+            pair={pair}
+            index={index}
+            onSelect={onPairSelect}
+          />
         ))}
       </div>
 
@@ -114,4 +142,6 @@ export default function PopularPairs({ onPairSelect }: PopularPairsProps) {
       </motion.div>
     </div>
   )
-}
+})
+
+export default PopularPairs

@@ -5,7 +5,7 @@ import { fetchMarketCoins, searchMarketCoins, fetchFavorites, addFavorite, remov
 import { useSession } from "next-auth/react"
 import CoinCard from "./CoinCard"
 import { CoinCardSkeleton } from "@/components/ui/skeleton"
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Filter } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -181,28 +181,28 @@ export default function MarketOverview({ searchQuery = "" }: MarketOverviewProps
     },
   })
 
-  const handleToggleFavorite = (coinId: string) => {
+  const handleToggleFavorite = useCallback((coinId: string) => {
     if (favoriteIds.has(coinId)) {
       removeMutation.mutate(coinId)
     } else {
       addMutation.mutate(coinId)
     }
-  }
+  }, [favoriteIds, addMutation, removeMutation])
 
-  const handlePreviousPage = () => {
+  const handlePreviousPage = useCallback(() => {
     setCurrentPage((prev) => Math.max(prev - 1, 1))
-  }
+  }, [])
 
-  const handleNextPage = () => {
+  const handleNextPage = useCallback(() => {
     setCurrentPage((prev) => Math.min(prev + 1, displayTotalPages))
-  }
+  }, [displayTotalPages])
 
-  const handlePageClick = (page: number) => {
+  const handlePageClick = useCallback((page: number) => {
     setCurrentPage(page)
-  }
+  }, [])
 
   // Generate page numbers to display
-  const getPageNumbers = () => {
+  const getPageNumbers = useCallback(() => {
     const pages: (number | string)[] = []
     const maxPagesToShow = 5
     const totalPages = displayTotalPages
@@ -236,7 +236,7 @@ export default function MarketOverview({ searchQuery = "" }: MarketOverviewProps
     }
     
     return pages
-  }
+  }, [currentPage, displayTotalPages])
 
   if (isLoading) {
     return (

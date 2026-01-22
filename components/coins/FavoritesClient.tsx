@@ -7,8 +7,9 @@ import CoinCard from "./CoinCard"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Star, Loader2 } from "lucide-react"
+import { memo, useCallback, useMemo } from "react"
 
-export default function FavoritesClient() {
+const FavoritesClient = memo(function FavoritesClient() {
   const { data: session, status } = useSession()
   const queryClient = useQueryClient()
 
@@ -16,6 +17,7 @@ export default function FavoritesClient() {
     queryKey: ["favorites"],
     queryFn: fetchFavorites,
     enabled: !!session,
+    staleTime: 60000, // 1 minute
   })
 
   const removeMutation = useMutation({
@@ -25,7 +27,21 @@ export default function FavoritesClient() {
     },
   })
 
-  if (status === "loading" || isLoading) {
+  const handleRemoveFavorite = useCallback((coinId: string) => {
+    removeMutation.mutate(coinId)
+  }, [removeMutation])
+
+  const isLoadingState = useMemo(() => 
+    status === "loading" || isLoading,
+    [status, isLoading]
+  )
+
+  const hasFavorites = useMemo(() => 
+    favorites && Array.isArray(favorites) && favorites.length > 0,
+    [favorites]
+  )
+
+  if (isLoadingState) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -50,7 +66,7 @@ export default function FavoritesClient() {
     )
   }
 
-  if (!favorites || !Array.isArray(favorites) || favorites.length === 0) {
+  if (!hasFavorites) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <Star className="w-16 h-16 text-muted-foreground mb-4" />
@@ -74,9 +90,11 @@ export default function FavoritesClient() {
           key={coin.id}
           coin={coin}
           isFavorite={true}
-          onToggleFavorite={() => removeMutation.mutate(coin.id)}
+          onToggleFavorite={handleRemoveFavorite}
         />
       ))}
     </div>
   )
-}
+})
+
+export default FavoritesClient

@@ -1,7 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { fetchMarketCoins, fetchGlobalMarketData } from "@/services/queries"
+import { fetchMarketStats } from "@/services/queries"
 import { TrendingUp, DollarSign, BarChart3, Activity } from "lucide-react"
 import { StatCardSkeleton } from "@/components/ui/skeleton"
 import { useRouter } from "next/navigation"
@@ -11,17 +11,13 @@ import Image from "next/image"
 export default function MarketStats() {
   const router = useRouter()
   
-  const { data: globalData, isLoading: isGlobalLoading } = useQuery({
-    queryKey: ["global-market-data"],
-    queryFn: fetchGlobalMarketData,
+  // Single optimized query that fetches all stats at once
+  const { data: marketStats, isLoading } = useQuery({
+    queryKey: ["market-stats"],
+    queryFn: fetchMarketStats,
+    staleTime: 180000, // 3 minutes
+    refetchInterval: 180000, // Auto-refetch every 3 minutes
   })
-
-  const { data: coins, isLoading: isCoinsLoading } = useQuery({
-    queryKey: ["market-coins-stats"],
-    queryFn: () => fetchMarketCoins(1, 100), // Fetch top 100 for better stats
-  })
-
-  const isLoading = isGlobalLoading || isCoinsLoading
 
   if (isLoading) {
     return (
@@ -33,18 +29,17 @@ export default function MarketStats() {
     )
   }
 
-  // Use global data for market cap and volume
-  const totalMarketCap = globalData?.data?.total_market_cap?.usd || 0
-  const totalVolume = globalData?.data?.total_volume?.usd || 0
-  const marketCapChange = globalData?.data?.market_cap_change_percentage_24h_usd || 0
+  if (!marketStats) {
+    return null
+  }
 
-  // Calculate average change and top gainer from coins
-  const avgChange = (coins?.reduce((acc, coin) => acc + (coin.price_change_percentage_24h || 0), 0) || 0) / (coins?.length || 1)
-  const topGainer = coins && coins.length > 0 
-    ? coins.reduce((max, coin) => 
-        (coin.price_change_percentage_24h || 0) > (max.price_change_percentage_24h || 0) ? coin : max
-      , coins[0])
-    : null
+  // Extract data from optimized stats
+  const { global, calculated } = marketStats
+  const totalMarketCap = global.totalMarketCap
+  const totalVolume = global.totalVolume
+  const marketCapChange = global.marketCapChange
+  const avgChange = calculated.avgChange
+  const topGainer = calculated.topGainer
 
   const stats = [
     {
@@ -74,7 +69,7 @@ export default function MarketStats() {
     {
       label: "Top Gainer",
       value: topGainer?.symbol?.toUpperCase() || "N/A",
-      change: `+${(topGainer?.price_change_percentage_24h || 0).toFixed(1)}%`,
+      change: topGainer ? `+${topGainer.priceChange.toFixed(1)}%` : "N/A",
       trend: "up" as const,
       icon: TrendingUp,
       color: "cyan",
@@ -90,8 +85,22 @@ export default function MarketStats() {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {stats.map((stat, idx) => {
+    <div className="space-y-4">
+      {/* Data freshness indicator */}
+      <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
+        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+        <span>
+          Live data from <span className="font-bold text-foreground">{calculated.coinsAnalyzed.toLocaleString()}</span> coins
+          {'totalCoins' in calculated && calculated.totalCoins && calculated.totalCoins > calculated.coinsAnalyzed && (
+            <span className="ml-1">
+              (of {calculated.totalCoins.toLocaleString()} total)
+            </span>
+          )}
+        </span>
+      </div>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {stats.map((stat, idx) => {
         const colors = colorClasses[stat.color as keyof typeof colorClasses]
         const isTopGainer = stat.label === "Top Gainer"
         
@@ -158,9 +167,9 @@ export default function MarketStats() {
                 <p className="text-sm card-text-muted mb-1">{stat.label}</p>
                 <p className="text-2xl font-bold card-text">{stat.value}</p>
                 
-                {/* Subtle hint */}
-                <p className="text-xs text-muted-foreground/60 mt-2 group-hover:text-primary transition-colors">
-                  Click to view →
+                {/* Show coins analyzed count */}
+                <p className="text-xs text-muted-foreground/60 mt-2">
+                  Based on {calculated.coinsAnalyzed.toLocaleString()} coins
                 </p>
               </div>
             </motion.button>
@@ -190,6 +199,7 @@ export default function MarketStats() {
           </motion.div>
         )
       })}
+      </div>
     </div>
   )
 }

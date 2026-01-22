@@ -33,6 +33,37 @@ export const fetchGlobalMarketData = () =>
     };
   }>("/api/coins/global");
 
+export const fetchMarketStats = () =>
+  api<{
+    global: {
+      totalMarketCap: number;
+      totalVolume: number;
+      marketCapChange: number;
+      activeCryptocurrencies: number;
+    };
+    calculated: {
+      avgChange: number;
+      topGainer: {
+        id: string;
+        symbol: string;
+        name: string;
+        image: string;
+        priceChange: number;
+      } | null;
+      topLoser: {
+        id: string;
+        symbol: string;
+        name: string;
+        image: string;
+        priceChange: number;
+      } | null;
+      marketSentiment: number;
+      coinsAnalyzed: number;
+      totalCoins: number;
+    };
+    timestamp: number;
+  }>("/api/coins/stats");
+
 /* ======================
    FAVORITES
 ====================== */

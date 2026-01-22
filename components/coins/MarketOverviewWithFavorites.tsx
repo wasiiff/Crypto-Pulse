@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, memo } from "react"
 import SearchContainer from "./SearchContainer"
 import MarketOverview from "./MarketOverview"
 
-export default function MarketOverviewWithFavorites() {
+const MarketOverviewWithFavorites = memo(function MarketOverviewWithFavorites() {
   const [searchQuery, setSearchQuery] = useState("")
   const [isSearchLoading, setIsSearchLoading] = useState(false)
 
@@ -34,4 +34,6 @@ export default function MarketOverviewWithFavorites() {
       <MarketOverview searchQuery={searchQuery} />
     </div>
   )
-}
+})
+
+export default MarketOverviewWithFavorites

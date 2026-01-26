@@ -31,7 +31,7 @@ export default function PortfolioHeader({
       {/* Title with gradient accent */}
       <div className="relative">
         <div className="absolute -left-4 top-0 bottom-0 w-1 bg-linear-to-b from-primary via-primary/50 to-transparent rounded-full" />
-        <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3">My Portfolio</h1>
+        <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3">Portfolio</h1>
         <p className="text-muted-foreground text-base">
           Track your crypto assets across multiple blockchain networks
         </p>

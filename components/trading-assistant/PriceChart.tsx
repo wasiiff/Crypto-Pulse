@@ -118,6 +118,26 @@ export default function PriceChart({ coinId, days = 30 }: PriceChartProps) {
             <Tooltip
               content={({ active, payload }) => {
                 if (!active || !payload?.length) return null;
+                
+                const formatPrice = (value: number) => {
+                  if (value === 0) return '$0.00';
+                  if (value >= 1) {
+                    return `$${value.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}`;
+                  }
+                  // For values < 1, show significant digits
+                  if (value >= 0.01) {
+                    return `$${value.toFixed(4)}`;
+                  }
+                  if (value >= 0.0001) {
+                    return `$${value.toFixed(6)}`;
+                  }
+                  // For very small values, use scientific notation or show up to 8 decimals
+                  return `$${value.toFixed(8)}`;
+                };
+                
                 return (
                   <div className="bg-popover border rounded-lg p-3 shadow-lg">
                     <p className="text-sm font-medium mb-2">
@@ -125,10 +145,7 @@ export default function PriceChart({ coinId, days = 30 }: PriceChartProps) {
                     </p>
                     {payload.map((entry, index) => (
                       <p key={index} className="text-sm" style={{ color: entry.color }}>
-                        {entry.name}: ${Number(entry.value).toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
+                        {entry.name}: {formatPrice(Number(entry.value))}
                       </p>
                     ))}
                   </div>

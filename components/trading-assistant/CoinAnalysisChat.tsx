@@ -1,10 +1,7 @@
 "use client";
 
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { MessageSquare, Bot } from 'lucide-react';
-import TradingAssistant from './TradingAssistant';
+import { Bot } from 'lucide-react';
 
 interface CoinAnalysisChatProps {
   coinId: string;
@@ -13,27 +10,13 @@ interface CoinAnalysisChatProps {
 }
 
 export default function CoinAnalysisChat({ coinId, coinSymbol, coinName }: CoinAnalysisChatProps) {
-  const [open, setOpen] = useState(false);
-
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
-          <Bot className="w-4 h-4" />
-          Ask AI Assistant
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-5xl h-[85vh] p-0">
-        <DialogHeader className="px-6 pt-6 pb-0">
-          <DialogTitle className="flex items-center gap-2">
-            <Bot className="w-5 h-5" />
-            AI Analysis for {coinName}
-          </DialogTitle>
-        </DialogHeader>
-        <div className="h-full overflow-hidden">
-          <TradingAssistant coinId={coinId} coinSymbol={coinSymbol} />
-        </div>
-      </DialogContent>
-    </Dialog>
+    <Button variant="outline" className="gap-2 cursor-not-allowed opacity-60" disabled>
+      <Bot className="w-4 h-4" />
+      Ask AI Assistant
+      <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium ml-1">
+        Coming Soon
+      </span>
+    </Button>
   );
 }

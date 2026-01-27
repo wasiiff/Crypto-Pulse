@@ -142,11 +142,11 @@ function CoinDetailSkeleton() {
               <div className="space-y-4">
                 {/* Chart skeleton */}
                 <div className="h-[300px] flex items-end gap-2">
-                  {Array.from({ length: 30 }).map((_, i) => (
+                  {[65, 70, 55, 80, 75, 60, 85, 90, 70, 65, 75, 80, 70, 60, 55, 65, 75, 85, 80, 70, 65, 75, 70, 80, 85, 75, 70, 65, 60, 70].map((height, i) => (
                     <Skeleton 
                       key={i} 
                       className="flex-1 rounded-t-sm" 
-                      style={{ height: `${Math.random() * 60 + 40}%` }}
+                      style={{ height: `${height}%` }}
                     />
                   ))}
                 </div>

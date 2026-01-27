@@ -2,75 +2,102 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import {
   Send,
   TrendingUp,
   BarChart3,
   Sparkles,
-  History,
-  Trash2,
-  Plus,
   Bot,
   User,
   Copy,
   Check,
+  ThumbsUp,
+  ThumbsDown,
+  RefreshCw,
+  Target,
+  Shield,
+  Brain,
+  Loader2,
+  Zap,
+  LineChart,
+  PieChart,
+  Menu,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import ChatMarkdown from './ChatMarkdown';
 
 interface SuggestedPrompt {
   icon: React.ReactNode;
   title: string;
   prompt: string;
-  category: string;
+  gradient: string;
 }
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  feedback?: 'up' | 'down' | null;
 }
 
 const SUGGESTED_PROMPTS: SuggestedPrompt[] = [
   {
-    icon: <TrendingUp className="w-4 h-4" />,
-    title: "Analyze Bitcoin Trend",
+    icon: <TrendingUp className="w-5 h-5" />,
+    title: "Bitcoin Analysis",
     prompt: "Analyze the current Bitcoin price trend and provide trading insights",
-    category: "Analysis"
+    gradient: "from-orange-500 to-amber-500",
   },
   {
-    icon: <BarChart3 className="w-4 h-4" />,
+    icon: <BarChart3 className="w-5 h-5" />,
     title: "Technical Indicators",
     prompt: "Explain RSI, MACD, and Moving Averages for Ethereum",
-    category: "Education"
+    gradient: "from-blue-500 to-cyan-500",
   },
   {
-    icon: <Sparkles className="w-4 h-4" />,
+    icon: <Sparkles className="w-5 h-5" />,
     title: "Market Prediction",
     prompt: "Based on historical data, what's your prediction for Solana in the next week?",
-    category: "Prediction"
+    gradient: "from-purple-500 to-pink-500",
   },
   {
-    icon: <TrendingUp className="w-4 h-4" />,
-    title: "Entry/Exit Points",
+    icon: <Target className="w-5 h-5" />,
+    title: "Entry & Exit Points",
     prompt: "What are good entry and exit points for Cardano right now?",
-    category: "Strategy"
+    gradient: "from-emerald-500 to-teal-500",
   },
   {
-    icon: <BarChart3 className="w-4 h-4" />,
+    icon: <Shield className="w-5 h-5" />,
     title: "Risk Management",
     prompt: "How should I manage risk when trading volatile altcoins?",
-    category: "Education"
+    gradient: "from-rose-500 to-red-500",
   },
   {
-    icon: <Sparkles className="w-4 h-4" />,
-    title: "Portfolio Advice",
-    prompt: "Suggest a balanced crypto portfolio for a moderate risk tolerance",
-    category: "Strategy"
+    icon: <Brain className="w-5 h-5" />,
+    title: "Portfolio Strategy",
+    prompt: "Suggest a balanced crypto portfolio for moderate risk tolerance",
+    gradient: "from-indigo-500 to-violet-500",
   },
 ];
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { duration: 0.5, staggerChildren: 0.08 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.5, ease: [0.25, 0.4, 0.25, 1] as [number, number, number, number] },
+  },
+};
 
 interface TradingAssistantProps {
   coinId?: string;
@@ -81,16 +108,24 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [inputValue, setInputValue] = useState('');
-  const [messages, setMessages] = useState<Message[]>(
-    coinId ? [{
-      id: 'welcome',
-      role: 'assistant' as const,
-      content: `Hello! I'm your AI trading assistant. I can help you analyze ${coinSymbol?.toUpperCase() || 'cryptocurrencies'}, understand technical indicators, and make informed trading decisions. What would you like to know?`,
-    }] : []
-  );
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (messages.length === 0) {
+      setMessages([{
+        id: 'welcome',
+        role: 'assistant',
+        content: coinId 
+          ? `Hey! 👋 Ready to analyze **${coinSymbol?.toUpperCase()}** for you.\n\nI can provide technical analysis, price predictions, and trading strategies. What would you like to explore?`
+          : `Hey! 👋 I'm your **AI Trading Companion**.\n\nI specialize in **technical analysis**, **price predictions**, **trading strategies**, and **risk management** for cryptocurrencies.\n\nSelect a topic below or ask me anything!`,
+      }]);
+    }
+  }, [coinId, coinSymbol, messages.length]);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -102,6 +137,7 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
 
   const handleSuggestedPrompt = useCallback((prompt: string) => {
     setInputValue(prompt);
+    inputRef.current?.focus();
   }, []);
 
   const handleCopy = useCallback(async (content: string, index: number) => {
@@ -110,8 +146,18 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
     setTimeout(() => setCopiedIndex(null), 2000);
   }, []);
 
-  const handleInputChangeLocal = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(e.target.value);
+    e.target.style.height = 'auto';
+    e.target.style.height = Math.min(e.target.scrollHeight, 150) + 'px';
+  }, []);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const form = e.currentTarget.closest('form');
+      form?.requestSubmit();
+    }
   }, []);
 
   const handleFormSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
@@ -126,6 +172,7 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
     
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
+    if (inputRef.current) inputRef.current.style.height = 'auto';
     setIsLoading(true);
 
     try {
@@ -133,9 +180,7 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
       
       const response = await fetch('/api/trading-assistant', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: [...messages, userMessage],
           sessionId,
@@ -144,9 +189,7 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
         signal: abortControllerRef.current.signal,
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get response');
-      }
+      if (!response.ok) throw new Error('Failed to get response');
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
@@ -164,23 +207,14 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
           setMessages(prev => {
             const existing = prev.find(m => m.id === assistantId);
             if (existing) {
-              return prev.map(m => 
-                m.id === assistantId 
-                  ? { ...m, content: assistantMessage }
-                  : m
-              );
-            } else {
-              return [...prev, {
-                id: assistantId,
-                role: 'assistant' as const,
-                content: assistantMessage,
-              }];
+              return prev.map(m => m.id === assistantId ? { ...m, content: assistantMessage } : m);
             }
+            return [...prev, { id: assistantId, role: 'assistant' as const, content: assistantMessage }];
           });
         }
       }
-    } catch (error: any) {
-      if (error.name !== 'AbortError') {
+    } catch (error) {
+      if (error instanceof Error && error.name !== 'AbortError') {
         console.error('Error:', error);
         setMessages(prev => [...prev, {
           id: `error-${Date.now()}`,
@@ -194,169 +228,359 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
     }
   }, [inputValue, isLoading, messages, sessionId, coinId]);
 
+  const handleFeedback = useCallback((messageId: string, feedback: 'up' | 'down') => {
+    setMessages(prev => prev.map(m => 
+      m.id === messageId ? { ...m, feedback: m.feedback === feedback ? null : feedback } : m
+    ));
+  }, []);
+
+  const handleRegenerate = useCallback(() => {
+    const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
+    if (lastUserMessage) {
+      setMessages(prev => prev.filter((_, i) => i < prev.length - 1));
+      setInputValue(lastUserMessage.content);
+    }
+  }, [messages]);
+
   const showSuggestions = useMemo(() => messages.length <= 1, [messages.length]);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
-              <Bot className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold">AI Trading Assistant</h1>
-              <p className="text-sm text-muted-foreground">
-                {coinSymbol ? `Analyzing ${coinSymbol.toUpperCase()}` : 'Powered by advanced market analysis'}
-              </p>
+    <div className="fixed inset-0 bg-gradient-to-br from-background via-background to-muted/20 overflow-hidden">
+      <div className="h-full flex">
+        {/* Sidebar */}
+        <div className={cn(
+          "w-64 border-r border-border/50 bg-card/30 backdrop-blur-sm flex flex-col transition-transform duration-300 lg:translate-x-0",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full",
+          "fixed lg:relative inset-y-0 left-0 z-50"
+        )}>
+          {/* Close button for mobile */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-4 right-4 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <X className="w-4 h-4" />
+          </Button>
+
+          {/* Header */}
+          <div className="p-4 border-b border-border/50">
+            <h1 className="text-lg font-bold flex items-center gap-2">
+              <Bot className="w-5 h-5 text-primary" />
+              CHAT A.I+
+            </h1>
+          </div>
+
+          {/* New Chat Button */}
+          <div className="p-4">
+            <Button
+              onClick={() => {
+                setMessages([{
+                  id: 'welcome',
+                  role: 'assistant',
+                  content: coinId 
+                    ? `Hey! 👋 Ready to analyze **${coinSymbol?.toUpperCase()}** for you.\n\nI can provide technical analysis, price predictions, and trading strategies. What would you like to explore?`
+                    : `Hey! 👋 I'm your **AI Trading Companion**.\n\nI specialize in **technical analysis**, **price predictions**, **trading strategies**, and **risk management** for cryptocurrencies.\n\nSelect a topic below or ask me anything!`,
+                }]);
+                setInputValue('');
+                setSidebarOpen(false);
+              }}
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl gap-2"
+            >
+              <span className="text-xl">+</span>
+              New chat
+            </Button>
+          </div>
+
+          {/* Conversation History */}
+          <div className="flex-1 overflow-y-auto px-4">
+            <div className="text-xs text-muted-foreground mb-2">Your conversations</div>
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-left mb-1 rounded-lg hover:bg-muted/50"
+              onClick={() => {}}
+            >
+              <span className="truncate text-sm">Clear All</span>
+            </Button>
+          </div>
+
+          {/* User Section */}
+          <div className="p-4 border-t border-border/50">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center">
+                <User className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium truncate">Settings</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
-        <AnimatePresence mode="popLayout">
-          {messages.map((message, index) => (
-            <motion.div
-              key={message.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className={cn(
-                "flex gap-3",
-                message.role === 'user' ? 'justify-end' : 'justify-start'
-              )}
-            >
-              {message.role === 'assistant' && (
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                  <Bot className="w-4 h-4 text-white" />
-                </div>
-              )}
-              
-              <div className={cn(
-                "group relative max-w-[80%] rounded-2xl px-4 py-3",
-                message.role === 'user'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted'
-              )}>
-                <div className="prose prose-sm dark:prose-invert max-w-none">
-                  {message.content}
-                </div>
-                
-                {message.role === 'assistant' && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute -right-10 top-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => handleCopy(message.content, index)}
-                  >
-                    {copiedIndex === index ? (
-                      <Check className="w-4 h-4 text-green-500" />
-                    ) : (
-                      <Copy className="w-4 h-4" />
-                    )}
-                  </Button>
-                )}
-              </div>
-
-              {message.role === 'user' && (
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                  <User className="w-4 h-4 text-primary-foreground" />
-                </div>
-              )}
-            </motion.div>
-          ))}
-        </AnimatePresence>
-
-        {isLoading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex gap-3"
-          >
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-              <Bot className="w-4 h-4 text-white" />
-            </div>
-            <div className="bg-muted rounded-2xl px-4 py-3">
-              <div className="flex gap-1">
-                <div className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '0ms' }} />
-                <div className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '300ms' }} />
-              </div>
-            </div>
-          </motion.div>
+        {/* Overlay for mobile */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
         )}
 
-        {/* Suggested Prompts */}
-        {showSuggestions && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-4"
-          >
-            <p className="text-sm text-muted-foreground text-center">
-              Try asking me about:
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {SUGGESTED_PROMPTS.map((suggestion, index) => (
-                <motion.button
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  onClick={() => handleSuggestedPrompt(suggestion.prompt)}
-                  className="text-left p-4 rounded-xl border bg-card hover:bg-accent transition-colors group"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                      {suggestion.icon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-sm">{suggestion.title}</span>
-                        <span className="text-xs text-muted-foreground">{suggestion.category}</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2">
-                        {suggestion.prompt}
-                      </p>
-                    </div>
-                  </div>
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input Area */}
-      <div className="border-t bg-card/50 backdrop-blur-sm p-4">
-        <form onSubmit={handleFormSubmit} className="max-w-4xl mx-auto">
-          <div className="flex gap-2">
-            <Input
-              value={inputValue}
-              onChange={handleInputChangeLocal}
-              placeholder="Ask about trading strategies, technical analysis, or market predictions..."
-              className="flex-1 h-12 rounded-xl"
-              disabled={isLoading}
-            />
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col">
+          {/* Mobile menu button */}
+          <div className="lg:hidden p-4 border-b border-border/50">
             <Button
-              type="submit"
+              variant="ghost"
               size="icon"
-              className="h-12 w-12 rounded-xl"
-              disabled={isLoading || !inputValue || !inputValue.trim()}
+              onClick={() => setSidebarOpen(true)}
             >
-              <Send className="w-4 h-4" />
+              <Menu className="w-5 h-5" />
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground mt-2 text-center">
-            AI-powered insights • Not financial advice • Always DYOR
-          </p>
-        </form>
+
+          {/* Subtle grid pattern */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.02)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
+          
+          {/* Messages Area */}
+          <div className="flex-1 overflow-y-auto relative">
+            <div className="max-w-3xl mx-auto px-6 py-8">
+              <AnimatePresence mode="popLayout">
+                {messages.map((message, index) => (
+                  <motion.div
+                    key={message.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="mb-8"
+                  >
+                    {/* Message Header */}
+                    <div className="flex items-center gap-3 mb-3">
+                      {message.role === 'assistant' ? (
+                        <>
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center">
+                            <Bot className="w-4 h-4 text-white" />
+                          </div>
+                          <span className="text-sm font-medium text-muted-foreground">CHAT A.I + 🤖</span>
+                        </>
+                      ) : (
+                        <>
+                          <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center">
+                            <User className="w-4 h-4" />
+                          </div>
+                          <span className="text-sm font-medium">You</span>
+                        </>
+                      )}
+                    </div>
+                    
+                    {/* Message Content */}
+                    <div className={cn(
+                      "group relative pl-10",
+                      message.role === 'user' ? 'max-w-full' : 'max-w-full'
+                    )}>
+                      <div className="prose prose-sm dark:prose-invert max-w-none">
+                        {message.role === 'assistant' ? (
+                          <ChatMarkdown>{message.content}</ChatMarkdown>
+                        ) : (
+                          <p className="text-sm whitespace-pre-wrap leading-relaxed text-foreground">{message.content}</p>
+                        )}
+                      </div>
+                      
+                      {/* Message Actions */}
+                      {message.role === 'assistant' && message.id !== 'welcome' && (
+                        <div className="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 rounded-md hover:bg-muted"
+                            onClick={() => handleCopy(message.content, index)}
+                          >
+                            {copiedIndex === index ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-500" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn("h-7 w-7 rounded-md hover:bg-muted", message.feedback === 'up' && "text-emerald-500")}
+                            onClick={() => handleFeedback(message.id, 'up')}
+                          >
+                            <ThumbsUp className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn("h-7 w-7 rounded-md hover:bg-muted", message.feedback === 'down' && "text-rose-500")}
+                            onClick={() => handleFeedback(message.id, 'down')}
+                          >
+                            <ThumbsDown className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 rounded-md hover:bg-muted"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5 text-muted-foreground" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+
+              {/* Loading State */}
+              {isLoading && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="mb-8"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center">
+                      <Bot className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="text-sm font-medium text-muted-foreground">CHAT A.I + 🤖</span>
+                  </div>
+                  <div className="pl-10">
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-1">
+                        <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
+                      <span className="text-sm text-muted-foreground">Thinking...</span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Suggested Prompts */}
+              {showSuggestions && (
+                <motion.div
+                  initial="hidden"
+                  animate="visible"
+                  variants={containerVariants}
+                  className="mt-8"
+                >
+                  {/* Title Section */}
+                  <motion.div variants={itemVariants} className="text-center mb-8">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
+                      <Zap className="w-4 h-4 text-primary" />
+                      <span className="text-sm font-medium text-primary">Quick Start</span>
+                    </div>
+                    <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+                      What would you like to explore?
+                    </h2>
+                    <p className="text-muted-foreground">
+                      Select a topic or type your own question
+                    </p>
+                  </motion.div>
+
+                  {/* Prompt Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {SUGGESTED_PROMPTS.map((suggestion, index) => (
+                      <motion.button
+                        key={index}
+                        variants={itemVariants}
+                        whileHover={{ scale: 1.03, y: -4 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => handleSuggestedPrompt(suggestion.prompt)}
+                        className="group relative text-left p-5 rounded-2xl bg-card/60 backdrop-blur-sm border border-border/50 hover:border-primary/40 shadow-lg hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 overflow-hidden"
+                      >
+                        {/* Gradient overlay on hover */}
+                        <div className={cn(
+                          "absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 bg-gradient-to-br",
+                          suggestion.gradient
+                        )} />
+                        
+                        <div className="relative flex items-start gap-4">
+                          <div className={cn(
+                            "shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br",
+                            suggestion.gradient
+                          )}>
+                            {suggestion.icon}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
+                              {suggestion.title}
+                            </h3>
+                            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                              {suggestion.prompt}
+                            </p>
+                          </div>
+                        </div>
+                      </motion.button>
+                    ))}
+                  </div>
+
+                  {/* Feature Pills */}
+                  <motion.div variants={itemVariants} className="flex flex-wrap justify-center gap-3 mt-8">
+                    {[
+                      { icon: <LineChart className="w-4 h-4" />, label: "Technical Analysis" },
+                      { icon: <TrendingUp className="w-4 h-4" />, label: "Price Predictions" },
+                      { icon: <PieChart className="w-4 h-4" />, label: "Portfolio Advice" },
+                      { icon: <Shield className="w-4 h-4" />, label: "Risk Management" },
+                    ].map((feature, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 border border-border/50 text-sm text-muted-foreground"
+                      >
+                        {feature.icon}
+                        {feature.label}
+                      </div>
+                    ))}
+                  </motion.div>
+                </motion.div>
+              )}
+
+              <div ref={messagesEndRef} />
+            </div>
+          </div>
+
+          {/* Input Area */}
+          <div className="relative border-t border-border/50 bg-background/95 backdrop-blur-sm">
+            <div className="max-w-3xl mx-auto p-6">
+              <form onSubmit={handleFormSubmit} className="relative">
+                <div className="relative flex items-center gap-3 bg-muted/50 rounded-2xl px-4 py-3 border border-border/50 focus-within:border-primary/50 transition-colors">
+                  <textarea
+                    ref={inputRef}
+                    value={inputValue}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
+                    placeholder="What is your need?"
+                    rows={1}
+                    className="flex-1 resize-none bg-transparent border-0 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-0 max-h-[120px]"
+                    disabled={isLoading}
+                  />
+                  <Button
+                    type="submit"
+                    size="icon"
+                    disabled={isLoading || !inputValue.trim()}
+                    className="h-9 w-9 rounded-full shrink-0 bg-primary hover:bg-primary/90 disabled:opacity-50 transition-all"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
+              </form>
+              
+              <div className="flex items-center justify-center gap-4 mt-4 text-xs text-muted-foreground">
+                <span>Regenerate</span>
+                <span>•</span>
+                <span className="flex items-center gap-1">
+                  <Bot className="w-3 h-3" />
+                  Regenerate
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

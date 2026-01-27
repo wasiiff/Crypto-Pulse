@@ -199,6 +199,12 @@ const CoinDetailClient = memo(function CoinDetailClient({ coinId }: CoinDetailCl
                     coinId={coinId} 
                     coinSymbol={coin.symbol} 
                     coinName={coin.name}
+                    coinData={{
+                      price: currentPrice,
+                      priceChange24h: priceChange,
+                      marketCap: coin?.market_data?.market_cap?.usd,
+                      volume24h: coin?.market_data?.total_volume?.usd,
+                    }}
                   />
                   <Button
                     variant="ghost"

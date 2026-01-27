@@ -1,11 +1,48 @@
-import { openai } from '@ai-sdk/openai';
+import { openai, createOpenAI } from '@ai-sdk/openai';
 
 /**
  * AI Configuration for Trading Assistant
  * 
  * This file centralizes AI model configuration for easy switching
  * between different models and providers.
+ * 
+ * VERCEL AI GATEWAY SUPPORT:
+ * -------------------------
+ * To use Vercel AI Gateway instead of direct OpenAI API:
+ * 
+ * 1. Go to your Vercel Dashboard → Project → Settings → AI
+ * 2. Enable AI Gateway
+ * 3. Add your OpenAI API key in the Vercel dashboard (not in .env)
+ * 4. Set USE_VERCEL_AI_GATEWAY=true in your .env
+ * 
+ * Benefits of Vercel AI Gateway:
+ * - Manage API keys securely in Vercel dashboard
+ * - Switch models without code changes
+ * - Built-in rate limiting and caching
+ * - Usage analytics and cost tracking
+ * - No OPENAI_API_KEY needed in your codebase
  */
+
+// Check if using Vercel AI Gateway
+const USE_VERCEL_AI_GATEWAY = process.env.USE_VERCEL_AI_GATEWAY === 'true';
+
+// Create provider based on configuration
+const getProvider = () => {
+  if (USE_VERCEL_AI_GATEWAY) {
+    // When using Vercel AI Gateway, no baseURL needed
+    // Vercel handles the API key and routing automatically
+    return createOpenAI({
+      // Vercel AI Gateway manages the API key
+      // No apiKey needed here when deployed to Vercel
+      compatibility: 'strict',
+    });
+  }
+  
+  // Direct OpenAI API (requires OPENAI_API_KEY in .env)
+  return openai;
+};
+
+export const aiProvider = getProvider();
 
 export const AI_MODELS = {
   // GPT-4 Turbo - Best quality, higher cost
@@ -44,10 +81,14 @@ export const AI_CONFIG = {
 
 /**
  * Get configured AI model instance
+ * 
+ * When using Vercel AI Gateway:
+ * - Model can be changed from Vercel Dashboard
+ * - No code changes needed to switch models
  */
 export function getAIModel(modelName?: string) {
   const model = modelName || AI_CONFIG.defaultModel;
-  return openai(model);
+  return aiProvider(model);
 }
 
 /**

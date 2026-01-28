@@ -13,7 +13,6 @@ import {
   Check,
   ThumbsUp,
   ThumbsDown,
-  RefreshCw,
   Target,
   Shield,
   Brain,
@@ -328,25 +327,16 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
     ));
   }, []);
 
-  const handleRegenerate = useCallback(() => {
-    const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
-    if (lastUserMessage) {
-      setMessages(prev => prev.filter((_, i) => i < prev.length - 1));
-      setInputValue(lastUserMessage.content);
-    }
-  }, [messages]);
-
   const showSuggestions = useMemo(() => messages.length <= 1, [messages.length]);
 
   return (
-    <div className="h-screen bg-gradient-to-br from-background via-background to-muted/20 overflow-hidden">
-      <div className="h-full flex">
-        {/* Sidebar */}
-        <div className={cn(
-          "w-64 border-r border-border/50 bg-card/30 backdrop-blur-sm flex flex-col transition-transform duration-300 lg:translate-x-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full",
-          "fixed lg:relative inset-y-0 left-0 z-50"
-        )}>
+    <div className="fixed inset-0 flex bg-gradient-to-br from-background via-background to-muted/20">
+      {/* Sidebar */}
+      <div className={cn(
+        "w-64 border-r border-border/50 bg-card/30 backdrop-blur-sm flex flex-col transition-transform duration-300 lg:translate-x-0",
+        sidebarOpen ? "translate-x-0" : "-translate-x-full",
+        "fixed lg:relative inset-y-0 left-0 z-50"
+      )}>
           {/* Close button for mobile */}
           <Button
             variant="ghost"
@@ -451,33 +441,33 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
           </div>
         </div>
 
-        {/* Overlay for mobile */}
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
+      {/* Overlay for mobile */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-        {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col">
-          {/* Mobile menu button */}
-          <div className="lg:hidden p-4 border-b border-border/50">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <Menu className="w-5 h-5" />
-            </Button>
-          </div>
-
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobile menu button */}
+        <div className="lg:hidden p-4 border-b border-border/50">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
+        </div>
+        
+        {/* Messages Area - THIS IS THE SCROLLABLE PART */}
+        <div className="flex-1 overflow-y-scroll relative">
           {/* Subtle grid pattern */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.02)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.02)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] pointer-events-none" />
           
-          {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto relative">
-            <div className="max-w-3xl mx-auto px-6 py-8">
+          <div className="max-w-3xl mx-auto px-6 py-8 relative z-10">
               <AnimatePresence mode="popLayout">
                 {messages.map((message, index) => (
                   <motion.div
@@ -535,13 +525,6 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
                                 onClick={() => handleFeedback(message.id, 'down')}
                               >
                                 <ThumbsDown className="w-3.5 h-3.5" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 rounded-md hover:bg-muted"
-                              >
-                                <RefreshCw className="w-3.5 h-3.5 text-muted-foreground" />
                               </Button>
                             </div>
                           )}
@@ -624,7 +607,12 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
                         variants={itemVariants}
                         whileHover={{ scale: 1.02, y: -2 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => handleSuggestedPrompt(coinId ? suggestion.prompt.replace(/Bitcoin|Ethereum|top 10 cryptocurrencies/gi, coinSymbol?.toUpperCase() || 'this coin') : suggestion.prompt)}
+                        onClick={() => {
+                          const prompt = coinId && coinSymbol 
+                            ? suggestion.prompt.replace(/Bitcoin|Ethereum|top 10 cryptocurrencies/gi, coinSymbol.toUpperCase() || 'this coin')
+                            : suggestion.prompt;
+                          handleSuggestedPrompt(prompt);
+                        }}
                         className="group relative text-left p-5 rounded-2xl bg-card/60 backdrop-blur-sm border border-border/50 hover:border-primary/40 shadow-lg hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 overflow-hidden"
                       >
                         {/* Gradient overlay on hover */}
@@ -645,7 +633,7 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
                               {suggestion.title}
                             </h3>
                             <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-                              {coinId ? suggestion.prompt.replace(/Bitcoin|Ethereum|top 10 cryptocurrencies/gi, coinSymbol?.toUpperCase() || 'this coin') : suggestion.prompt}
+                              {coinId && coinSymbol ? suggestion.prompt.replace(/Bitcoin|Ethereum|top 10 cryptocurrencies/gi, coinSymbol.toUpperCase() || 'this coin') : suggestion.prompt}
                             </p>
                           </div>
                         </div>
@@ -678,7 +666,7 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
           </div>
 
           {/* Input Area */}
-          <div className="relative border-t border-border/50 bg-background/95 backdrop-blur-sm">
+          <div className="border-t border-border/50 bg-background/95 backdrop-blur-sm">
             <div className="max-w-3xl mx-auto p-6">
               <form onSubmit={handleFormSubmit} className="relative">
                 <div className="relative flex items-center gap-3 bg-muted/50 rounded-2xl px-4 py-3 border border-border/50 focus-within:border-primary/50 transition-colors">
@@ -715,7 +703,6 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
           </div>
         </div>
       </div>
-    </div>
   );
 }
 

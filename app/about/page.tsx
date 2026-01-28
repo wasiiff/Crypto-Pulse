@@ -1,6 +1,6 @@
 "use client"
 
-import { Github, Rocket, Bot, Coins, TrendingUp, Shield, Zap, ArrowUpRight, Sparkles, Target, Users, Globe } from "lucide-react"
+import { Github, Rocket, Bot, Coins, TrendingUp, Shield, Zap, ArrowUpRight, Sparkles, Target, Users, Globe, Wallet } from "lucide-react"
 import Navbar from "@/components/layout/Navbar"
 import Footer from "@/components/layout/Footer"
 import { Button } from "@/components/ui/button"
@@ -11,10 +11,12 @@ import { BackgroundGrid, LeftDecorativePattern, RightDecorativePattern, Vertical
 export default function AboutPage() {
   const features = [
     { name: "Real-Time Market Data", description: "Track live cryptocurrency prices, market trends, and detailed analytics powered by CoinGecko API.", icon: TrendingUp, status: "Live" },
-    { name: "AI Trading Assistant", description: "Get intelligent trading suggestions powered by AI. Our bot analyzes market trends and provides personalized recommendations.", icon: Bot, status: "Coming Soon" },
-    { name: "Launch Your Coin", description: "Create and launch your own cryptocurrency with our easy-to-use platform. No technical knowledge required.", icon: Rocket, status: "Coming Soon" },
+    { name: "Personal Portfolio", description: "Connect your wallet and track your crypto holdings across multiple chains with real-time balance updates and portfolio analytics.", icon: Wallet, status: "Live" },
+    { name: "AI Trading Assistant", description: "Get intelligent trading suggestions powered by AI. Our bot analyzes market trends and provides personalized recommendations.", icon: Bot, status: "Live" },
     { name: "Smart Watchlist", description: "Save and monitor your favorite cryptocurrencies with real-time alerts and personalized insights.", icon: Sparkles, status: "Live" },
     { name: "Lightning Fast", description: "Built with Next.js 14 for optimal performance, instant page loads, and seamless user experience.", icon: Zap, status: "Live" },
+    { name: "Coin-Specific AI Analysis", description: "Deep dive into individual cryptocurrencies with AI-powered technical analysis, price predictions, and trading signals tailored to each coin.", icon: Target, status: "Coming Soon" },
+    { name: "Launch Your Coin", description: "Create and launch your own cryptocurrency with our easy-to-use platform. No technical knowledge required.", icon: Rocket, status: "Coming Soon" },
   ]
 
   return (

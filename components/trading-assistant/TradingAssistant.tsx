@@ -31,14 +31,6 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import ChatMarkdown from './ChatMarkdown';
 import { useSession } from 'next-auth/react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 
 interface SuggestedPrompt {
   icon: React.ReactNode;
@@ -134,7 +126,6 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [chatHistory, setChatHistory] = useState<ChatSession[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -152,14 +143,9 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
     }
   }, [coinId, coinSymbol, messages.length]);
 
-  // Load chat history for authenticated users
-  useEffect(() => {
-    if (session?.user && !loadingHistory) {
-      loadChatHistory();
-    }
-  }, [session]);
-
-  const loadChatHistory = async () => {
+  const loadChatHistory = useCallback(async () => {
+    if (!session?.user) return;
+    
     setLoadingHistory(true);
     try {
       const res = await fetch('/api/chat-history');
@@ -172,7 +158,14 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
     } finally {
       setLoadingHistory(false);
     }
-  };
+  }, [session]);
+
+  // Load chat history for authenticated users
+  useEffect(() => {
+    if (session?.user) {
+      loadChatHistory();
+    }
+  }, [session, loadChatHistory]);
 
   const loadChatSession = async (sid: string) => {
     try {
@@ -200,7 +193,6 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
   const deleteChatSession = async (sid: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setSessionToDelete(sid);
-    setDeleteDialogOpen(true);
   };
 
   const confirmDelete = async () => {
@@ -219,9 +211,12 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
     } catch (error) {
       console.error('Failed to delete chat session:', error);
     } finally {
-      setDeleteDialogOpen(false);
       setSessionToDelete(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setSessionToDelete(null);
   };
 
   const startNewChat = () => {
@@ -324,6 +319,14 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
           });
         }
       }
+
+      // Reload chat history after message is complete (for authenticated users)
+      if (session?.user) {
+        // Small delay to ensure backend has saved the chat
+        setTimeout(() => {
+          loadChatHistory();
+        }, 500);
+      }
     } catch (error) {
       if (error instanceof Error && error.name !== 'AbortError') {
         console.error('Error:', error);
@@ -337,7 +340,7 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
       setIsLoading(false);
       abortControllerRef.current = null;
     }
-  }, [inputValue, isLoading, messages, sessionId, coinId]);
+  }, [inputValue, isLoading, messages, sessionId, coinId, session, loadChatHistory]);
 
   const handleFeedback = useCallback((messageId: string, feedback: 'up' | 'down') => {
     setMessages(prev => prev.map(m => 
@@ -416,14 +419,45 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
                         {new Date(chat.updatedAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => deleteChatSession(chat.sessionId, e)}
-                    >
-                      <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                    </Button>
+                    
+                    {/* Delete button and confirmation popover */}
+                    <div className="relative">
+                      {sessionToDelete === chat.sessionId ? (
+                        <div className="absolute right-0 top-0 z-50 flex items-center gap-1 bg-card border border-border rounded-lg shadow-lg p-2 animate-in fade-in zoom-in-95 duration-200">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 hover:bg-muted"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              cancelDelete();
+                            }}
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              confirmDelete();
+                            }}
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => deleteChatSession(chat.sessionId, e)}
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -720,37 +754,6 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
             </div>
           </div>
         </div>
-
-        {/* Delete Confirmation Dialog */}
-        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Trash2 className="w-5 h-5 text-destructive" />
-                Delete Conversation
-              </DialogTitle>
-              <DialogDescription>
-                Are you sure you want to delete this conversation? This action cannot be undone.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="gap-2 sm:gap-0">
-              <Button
-                variant="outline"
-                onClick={() => setDeleteDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={confirmDelete}
-                className="gap-2"
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
   );
 }

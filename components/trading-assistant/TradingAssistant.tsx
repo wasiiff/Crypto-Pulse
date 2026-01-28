@@ -31,6 +31,14 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import ChatMarkdown from './ChatMarkdown';
 import { useSession } from 'next-auth/react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface SuggestedPrompt {
   icon: React.ReactNode;
@@ -126,6 +134,8 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [chatHistory, setChatHistory] = useState<ChatSession[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -189,20 +199,28 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
 
   const deleteChatSession = async (sid: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm('Delete this conversation?')) return;
+    setSessionToDelete(sid);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!sessionToDelete) return;
     
     try {
-      const res = await fetch(`/api/chat-history?sessionId=${sid}`, {
+      const res = await fetch(`/api/chat-history?sessionId=${sessionToDelete}`, {
         method: 'DELETE',
       });
       if (res.ok) {
-        setChatHistory(prev => prev.filter(chat => chat.sessionId !== sid));
-        if (sid === sessionId) {
+        setChatHistory(prev => prev.filter(chat => chat.sessionId !== sessionToDelete));
+        if (sessionToDelete === sessionId) {
           startNewChat();
         }
       }
     } catch (error) {
       console.error('Failed to delete chat session:', error);
+    } finally {
+      setDeleteDialogOpen(false);
+      setSessionToDelete(null);
     }
   };
 
@@ -702,6 +720,37 @@ function TradingAssistant({ coinId, coinSymbol }: TradingAssistantProps) {
             </div>
           </div>
         </div>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Trash2 className="w-5 h-5 text-destructive" />
+                Delete Conversation
+              </DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete this conversation? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                variant="outline"
+                onClick={() => setDeleteDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmDelete}
+                className="gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
   );
 }

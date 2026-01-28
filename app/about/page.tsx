@@ -1,6 +1,6 @@
 "use client"
 
-import { Github, Rocket, Bot, Coins, TrendingUp, Shield, Zap, ArrowUpRight, Sparkles, Target, Users, Globe, Wallet } from "lucide-react"
+import { Github, Rocket, Bot, Coins, TrendingUp, Shield, Zap, ArrowUpRight, Sparkles, Target, Users, Globe, Wallet, Brain } from "lucide-react"
 import Navbar from "@/components/layout/Navbar"
 import Footer from "@/components/layout/Footer"
 import { Button } from "@/components/ui/button"
@@ -99,7 +99,7 @@ export default function AboutPage() {
                   <p className="text-lg text-muted-foreground">Built with the best tools and technologies</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <a href="https://www.coingecko.com/" target="_blank" rel="noopener noreferrer" className="block p-6 border border-border/50 rounded-xl bg-muted/20 hover:border-primary/50 transition-all group">
                     <div className="flex items-center gap-3 mb-3">
                       <Coins className="w-6 h-6 text-primary" />
@@ -115,6 +115,14 @@ export default function AboutPage() {
                       <ArrowUpRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100" />
                     </div>
                     <p className="text-sm text-muted-foreground">Beautiful, accessible UI components that power our modern interface</p>
+                  </a>
+                  <a href="https://vercel.com/docs/ai-gateway" target="_blank" rel="noopener noreferrer" className="block p-6 border border-border/50 rounded-xl bg-muted/20 hover:border-primary/50 transition-all group">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Brain className="w-6 h-6 text-primary" />
+                      <h3 className="font-semibold text-lg">Vercel AI Gateway</h3>
+                      <ArrowUpRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">Advanced AI infrastructure powering intelligent trading insights and analysis</p>
                   </a>
                 </div>
               </section>

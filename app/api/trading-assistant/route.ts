@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { getCoinDetails, getCoinMarketChart } from '@/services/coingecko';
 import { TradingAnalyzer } from '@/services/trading-analysis';
 import { getAIModel, AI_CONFIG } from '@/lib/ai-config';
+import { executeTradingAgent } from '@/lib/agents/trading-agent';
+import { checkAIConfig, getSetupInstructions } from '@/lib/check-api-config';
 
 // Use Node.js runtime for MongoDB support
 export const runtime = 'nodejs';
@@ -161,8 +163,19 @@ Use this data to provide accurate and contextual analysis.`;
 
 export async function POST(req: Request) {
   try {
+    // Check AI configuration
+    const aiConfig = checkAIConfig();
+    console.log(aiConfig.message);
+    
+    if (!aiConfig.isConfigured) {
+      const errorMessage = `# ⚠️ AI Service Not Configured\n\n${aiConfig.message}\n\n${getSetupInstructions()}`;
+      return new Response(errorMessage, {
+        headers: { 'Content-Type': 'text/plain' },
+      });
+    }
+
     const session = await getServerSession(authOptions);
-    const { messages, sessionId, coinId } = await req.json();
+    const { messages, sessionId, coinId, useAgent = false, userPortfolio } = await req.json();
 
     // Check if the last message is a non-trading query
     const lastUserMessage = messages.filter((m: any) => m.role === 'user').pop();
@@ -173,6 +186,28 @@ export async function POST(req: Request) {
       return new Response(redirectMessage, {
         headers: { 'Content-Type': 'text/plain' },
       });
+    }
+
+    // Use LangGraph agent for advanced queries (backtest, portfolio, predictions)
+    if (useAgent || lastUserMessage.content.toLowerCase().includes('backtest') || 
+        lastUserMessage.content.toLowerCase().includes('portfolio') ||
+        lastUserMessage.content.toLowerCase().includes('predict')) {
+      try {
+        const marketContext = coinId ? await getMarketContext(coinId) : null;
+        const response = await executeTradingAgent(
+          lastUserMessage.content,
+          coinId,
+          marketContext?.coin?.symbol,
+          userPortfolio
+        );
+        
+        return new Response(response, {
+          headers: { 'Content-Type': 'text/plain' },
+        });
+      } catch (agentError) {
+        console.error('Agent execution failed, falling back to standard mode:', agentError);
+        // Fall through to standard mode
+      }
     }
 
     // Get market context if analyzing a specific coin
